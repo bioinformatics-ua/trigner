@@ -1,0 +1,211 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <groupId>pt.ua.tm.trigner</groupId>
+    <artifactId>trigner</artifactId>
+    <version>1.0-SNAPSHOT</version>
+
+    <!--
+    Project developers and organization
+    -->
+    <developers>
+        <developer>
+            <id>david</id>
+            <name>David Campos</name>
+            <email>david.campos@ua.pt</email>
+            <organization>UA.PT Bioinformatics</organization>
+            <organizationUrl>http://bioinformatics.ua.pt</organizationUrl>
+            <roles>
+                <role>architect</role>
+                <role>developer</role>
+            </roles>
+            <timezone>0</timezone>
+        </developer>
+    </developers>
+    <organization>
+        <name>UA.PT Bioinformatics</name>
+        <url>http://bioinformatics.ua.pt</url>
+    </organization>
+
+    <!--
+    Artifact deployment configuration (project redistribution)
+    -->
+    <distributionManagement>
+        <!-- Versioned releases are published to the releases repository -->
+        <repository>
+            <id>bioinformatics-releases</id>
+            <name>Bioinformatics Nexus (Internal Releases)</name>
+            <url>http://bioinformatics.ua.pt/maven/content/repositories/releases</url>
+        </repository>
+        <!-- Snapshot releases are published to the snapshots repository -->
+        <snapshotRepository>
+            <id>bioinformatics-snapshots</id>
+            <name>Bioinformatics Nexus (Internal Snapshots)</name>
+            <url>http://bioinformatics.ua.pt/maven/content/repositories/snapshots</url>
+        </snapshotRepository>
+    </distributionManagement>
+
+    <!--
+    Repositories used to fetch maven plugins used by the project
+    -->
+    <pluginRepositories>
+        <!-- UA.PT Bioinformatics Maven Repository -->
+        <pluginRepository>
+            <id>bioinformatics-all</id>
+            <name>Bioinformatics Nexus (Plugins)</name>
+            <url>http://bioinformatics.ua.pt/maven/content/groups/public</url>
+            <releases>
+                <enabled>true</enabled>
+            </releases>
+            <snapshots>
+                <enabled>true</enabled>
+            </snapshots>
+        </pluginRepository>
+    </pluginRepositories>
+
+    <!--
+    Project properties (can be reused anywhere in the pom like this: ${prop.name})
+    -->
+    <properties>
+        <!-- Java version we use and depend on -->
+        <maven.compiler.source>1.7</maven.compiler.source>
+        <maven.compiler.target>1.7</maven.compiler.target>
+
+        <!-- Compiler options -->
+        <maven.compiler.optimize>true</maven.compiler.optimize>
+        <maven.compiler.showDeprecations>true</maven.compiler.showDeprecations>
+
+        <!-- Explicitly set the source and output encoding to prevent Maven warnings -->
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
+
+        <targetJdk>1.7</targetJdk>
+
+        <!--<mainClass>pt.ua.tm.neji.cli.Main</mainClass>-->
+    </properties>
+
+    <!--
+    Project build configuration
+    -->
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <version>2.5.1</version>
+                <configuration>
+                    <source>1.7</source>
+                    <target>1.7</target>
+                    <optimize>${maven.compiler.optimize}</optimize>
+                </configuration>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-assembly-plugin</artifactId>
+                <version>2.4</version>
+                <configuration>
+                    <descriptorRefs>
+                        <!--
+                        Generate 2 packages:
+                            - one with the project code only (to be used as a maven dependency)
+                            - one with the project and its dependencies (to be used standalone)
+                        -->
+                        <descriptorRef>jar-with-dependencies</descriptorRef>
+                    </descriptorRefs>
+                    <archive>
+                        <manifest>
+                            <mainClass>${mainClass}</mainClass>
+                        </manifest>
+                        <manifestEntries>
+                            <Class-Path>.</Class-Path>
+                        </manifestEntries>
+                    </archive>
+                </configuration>
+                <executions>
+                    <execution>
+                        <phase>package</phase>
+                        <goals>
+                            <goal>single</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-deploy-plugin</artifactId>
+                <version>2.7</version>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-source-plugin</artifactId>
+                <version>2.2.1</version>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-javadoc-plugin</artifactId>
+                <version>2.9</version>
+                <configuration>
+                    <excludePackageNames>*.internal,*.example</excludePackageNames>
+                    <doclet>org.jboss.apiviz.APIviz</doclet>
+                    <docfilessubdirs>true</docfilessubdirs>
+                    <docletArtifact>
+                        <groupId>org.jboss.apiviz</groupId>
+                        <artifactId>apiviz</artifactId>
+                        <version>1.3.2.GA</version>
+                    </docletArtifact>
+                    <useStandardDocletOptions>true</useStandardDocletOptions>
+                    <overview>${basedir}/src/javadoc/overview.html</overview>
+                    <doctitle>Trigner API Reference (${project.version})</doctitle>
+                    <windowtitle>Trigner API Reference (${project.version})</windowtitle>
+                    <detectJavaApiLink>true</detectJavaApiLink>
+                    <additionalparam>
+                        -link http://docs.oracle.com/javase/7/docs/api/
+                        -link http://docs.oracle.com/javaee/6/api/
+                        -link http://www.slf4j.org/apidocs/
+                        -link http://commons.apache.org/logging/commons-logging-1.1.1/apidocs/
+                        -link http://logging.apache.org/log4j/1.2/apidocs/
+                        -sourceclasspath ${project.build.outputDirectory}
+                        <!---nopackagediagram-->
+                    </additionalparam>
+                    <encoding>UTF-8</encoding>
+                    <locale>en_US</locale>
+                </configuration>
+            </plugin>
+        </plugins>
+    </build>
+
+    <!--
+      Repositories used to fetch project dependencies
+    -->
+    <repositories>
+        <!-- UA.PT Bioinformatics Maven Repository -->
+        <repository>
+            <id>bioinformatics-all</id>
+            <name>Bioinformatics Nexus (All)</name>
+            <url>http://bioinformatics.ua.pt/maven/content/groups/public</url>
+            <releases>
+                <enabled>true</enabled>
+            </releases>
+            <snapshots>
+                <enabled>true</enabled>
+            </snapshots>
+        </repository>
+    </repositories>
+
+    <!--
+    Dependencies
+    -->
+    <dependencies>
+        <!-- Neji core project-->
+        <dependency>
+            <groupId>pt.ua.tm</groupId>
+            <artifactId>neji</artifactId>
+            <version>1.0-SNAPSHOT</version>
+            <scope>compile</scope>
+        </dependency>
+    </dependencies>
+
+</project>

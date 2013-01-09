@@ -1,0 +1,105 @@
+package pt.ua.tm.trigner;
+
+import cc.mallet.pipe.Pipe;
+import cc.mallet.types.*;
+import org.apache.commons.io.IOUtils;
+
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.util.ArrayList;
+
+/**
+ * Created with IntelliJ IDEA.
+ * User: david
+ * Date: 04/01/13
+ * Time: 09:11
+ * To change this template use File | Settings | File Templates.
+ */
+public class Input2TokenSequence extends Pipe {
+
+    public Input2TokenSequence() {
+        super(null, new LabelAlphabet());
+    }
+
+    /**
+     * Extract the data and features from input data.
+     *
+     * @param carrier Raw input data.
+     * @return Processed instance with correct data and features.
+     */
+    @Override
+    public Instance pipe(Instance carrier) {
+
+        String sentenceLines = (String) carrier.getData();
+
+        String[] tokens = sentenceLines.split("\n");
+        TokenSequence data = new TokenSequence(tokens.length);
+        LabelSequence target = new LabelSequence((LabelAlphabet) getTargetAlphabet(), tokens.length);
+        StringBuffer source = new StringBuffer();
+
+        String text, lemma, pos, chunk, label;
+
+        ArrayList<Token> newTokens = new ArrayList<>();
+        ArrayList<String> newLabels = new ArrayList<>();
+
+        for (String t : tokens) {
+            String[] features = t.split("\t");
+
+            // Token
+            text = features[0];
+            Token token = new Token(text);
+            token.setFeatureValue("WORD=" + text, 1.0);
+
+            // Lemma
+            lemma = features[1];
+            token.setFeatureValue("LEMMA=" + lemma, 1.0);
+
+            // Chunk
+            chunk = features[2];
+            token.setFeatureValue("CHUNK=" + chunk, 1.0);
+
+            //POS
+            pos = features[3];
+            token.setFeatureValue("POS=" + pos, 1.0);
+
+            // Label
+            label = features[4];
+            if (label.equals("Protein")) {
+                token.setFeatureValue("IS_PROTEIN", 1.0);
+                label = "O";
+            }
+
+            // TEMPORARY CRAPPY FIX
+            if(label.contains(";")){
+                System.out.println(label);
+                label = "O";
+            }
+
+            newTokens.add(token);
+            newLabels.add(label);
+
+            source.append(text);
+            source.append(" ");
+        }
+
+        // Add Tokens to Data
+        for (Token t : newTokens) {
+            StringBuilder sb = new StringBuilder(t.getText());
+            t.setText(sb.toString());
+            data.add(t);
+        }
+
+        // Add labels to Target
+        for (String l : newLabels)
+            target.add(l);
+
+        carrier.setData(data);
+        carrier.setTarget(target);
+        carrier.setSource(source);
+
+        return carrier;
+    }
+
+
+}
