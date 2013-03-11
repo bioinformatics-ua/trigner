@@ -1,12 +1,9 @@
-package pt.ua.tm.trigner;
+package pt.ua.tm.trigner.model.pipe;
 
 import cc.mallet.pipe.Pipe;
 import cc.mallet.types.*;
-import org.apache.commons.io.IOUtils;
+import pt.ua.tm.gimli.config.ModelConfig;
 
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.IOException;
 import java.util.ArrayList;
 
 /**
@@ -18,8 +15,11 @@ import java.util.ArrayList;
  */
 public class Input2TokenSequence extends Pipe {
 
-    public Input2TokenSequence() {
+    private ModelConfig config;
+
+    public Input2TokenSequence(final ModelConfig config) {
         super(null, new LabelAlphabet());
+        this.config = config;
     }
 
     /**
@@ -38,7 +38,7 @@ public class Input2TokenSequence extends Pipe {
         LabelSequence target = new LabelSequence((LabelAlphabet) getTargetAlphabet(), tokens.length);
         StringBuffer source = new StringBuffer();
 
-        String text, lemma, pos, chunk, label;
+        String text, label;
 
         ArrayList<Token> newTokens = new ArrayList<>();
         ArrayList<String> newLabels = new ArrayList<>();
@@ -49,32 +49,50 @@ public class Input2TokenSequence extends Pipe {
             // Token
             text = features[0];
             Token token = new Token(text);
-            token.setFeatureValue("WORD=" + text, 1.0);
 
-            // Lemma
-            lemma = features[1];
-            token.setFeatureValue("LEMMA=" + lemma, 1.0);
+            for (int i = 1; i < features.length - 1; i++) {
+                String feature = features[i];
+                String[] parts = feature.split("=");
 
-            // Chunk
-            chunk = features[2];
-            token.setFeatureValue("CHUNK=" + chunk, 1.0);
+                String key = parts[0];
 
-            //POS
-            pos = features[3];
-            token.setFeatureValue("POS=" + pos, 1.0);
+                boolean addFeature = false;
+                if (config.isToken() && key.equals("WORD")) {
+                    addFeature = true;
+                }
+                if (config.isLemma() && key.equals("LEMMA")) {
+                    addFeature = true;
+                }
+                if (config.isChunk() && key.equals("CHUNK")) {
+                    addFeature = true;
+                }
+                if (config.isPos() && key.equals("POS")) {
+                    addFeature = true;
+                }
+                if (config.isNLP() && (key.equals("SUB") ||
+                        key.equals("OBJ") ||
+                        key.equals("NMOD_OF") ||
+                        key.equals("NMOD_BY") ||
+                        key.equals("VMOD_OF") ||
+                        key.equals("VMOD_BY"))) {
+                    addFeature = true;
+                }
 
-            // Label
-            label = features[4];
-            if (label.equals("Protein")) {
-                token.setFeatureValue("IS_PROTEIN", 1.0);
-                label = "O";
+
+                if (key.equals("DEP_TOK") || key.equals("DEP_TAG")) {
+                    addFeature = true;
+                }
+
+                if (config.isConcepts() && (key.equals("CONCEPT") || key.equals("NUM_CONCEPT"))) {
+                    addFeature = true;
+                }
+
+                if (addFeature) {
+                    token.setFeatureValue(feature, 1.0);
+                }
             }
 
-            // TEMPORARY CRAPPY FIX
-            if(label.contains(";")){
-                System.out.println(label);
-                label = "O";
-            }
+            label = features[features.length - 1];
 
             newTokens.add(token);
             newLabels.add(label);
@@ -100,6 +118,4 @@ public class Input2TokenSequence extends Pipe {
 
         return carrier;
     }
-
-
 }

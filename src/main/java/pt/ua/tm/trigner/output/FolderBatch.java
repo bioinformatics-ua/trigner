@@ -1,4 +1,4 @@
-package pt.ua.tm.trigner;
+package pt.ua.tm.trigner.output;
 
 import org.apache.commons.lang.NotImplementedException;
 import org.apache.commons.lang.time.StopWatch;
@@ -66,9 +66,8 @@ public class FolderBatch implements Batch {
 
         for (File file : files) {
             File a1File = new File(file.getAbsolutePath().replaceAll(".txt", ".a1"));
-            File a2File = new File(file.getAbsolutePath().replaceAll(".txt", ".a2"));
-            File outputFile = OutputCorpus.newOutputFile(outputFolderPath, file.getName().replaceAll(".txt", ""), OutputCorpus.OutputFormat.CONLL, false);
-            Processor processor = getDocumentProcessor(file, a1File, a2File, outputFile, context);
+            File outputFile = OutputCorpus.newOutputFile(outputFolderPath, file.getName().replaceAll(".txt", ""), OutputCorpus.OutputFormat.A1, false);
+            Processor processor = getDocumentProcessor(file, a1File, outputFile, context);
 
             // Process entry
             executor.execute(processor);
@@ -95,19 +94,18 @@ public class FolderBatch implements Batch {
     }
 
 
-    private Processor getDocumentProcessor(final File inputTextFile, final File a1File, final File a2File, final File outputFile, Context context) {
+    private Processor getDocumentProcessor(final File inputTextFile, final File inputA1File, final File outputFile, Context context) {
         Corpus corpus = new Corpus();
-        Processor processor = null;
+        Processor processor;
 
         try {
             InputCorpus textCorpus = new InputCorpus(inputTextFile, InputCorpus.InputFormat.RAW, false, corpus);
-            InputCorpus a1Corpus = new InputCorpus(a1File, InputCorpus.InputFormat.RAW, false, new Corpus());
-            InputCorpus a2Corpus = new InputCorpus(a2File, InputCorpus.InputFormat.RAW, false, new Corpus());
-            OutputCorpus outputCorpus = new OutputCorpus(outputFile, OutputCorpus.OutputFormat.CONLL, false, corpus);
+            InputCorpus a1Corpus = new InputCorpus(inputA1File, InputCorpus.InputFormat.RAW, false, corpus);
+            OutputCorpus outputCorpus = new OutputCorpus(outputFile, OutputCorpus.OutputFormat.A1, false, corpus);
 
             processedCorpora.add(corpus);
 
-            processor = new DocumentProcessor(context, textCorpus, a1Corpus, a2Corpus, outputCorpus);
+            processor = new DocumentProcessor(context, textCorpus, a1Corpus, outputCorpus);
         } catch (IOException e) {
             throw new RuntimeException(e);
         }

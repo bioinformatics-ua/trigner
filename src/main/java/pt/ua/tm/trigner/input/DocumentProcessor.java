@@ -1,4 +1,4 @@
-package pt.ua.tm.trigner;
+package pt.ua.tm.trigner.input;
 
 import com.aliasi.util.Pair;
 import org.slf4j.Logger;
@@ -7,7 +7,6 @@ import pt.ua.tm.gimli.corpus.Corpus;
 import pt.ua.tm.neji.context.Context;
 import pt.ua.tm.neji.context.ContextProcessors;
 import pt.ua.tm.neji.core.corpus.InputCorpus;
-import pt.ua.tm.neji.core.corpus.OutputCorpus;
 import pt.ua.tm.neji.core.pipeline.DefaultPipeline;
 import pt.ua.tm.neji.core.pipeline.Pipeline;
 import pt.ua.tm.neji.core.processor.BaseProcessor;
@@ -15,7 +14,7 @@ import pt.ua.tm.neji.exception.NejiException;
 import pt.ua.tm.neji.nlp.NLP;
 import pt.ua.tm.neji.reader.RawReader;
 import pt.ua.tm.neji.sentence.SentenceTagger;
-import pt.ua.tm.neji.writer.CoNLLWriter;
+import pt.ua.tm.trigner.output.A1Loader;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -30,12 +29,10 @@ import java.util.List;
 public class DocumentProcessor extends BaseProcessor {
 
     private static Logger logger = LoggerFactory.getLogger(DocumentProcessor.class);
-
     private InputCorpus a1Corpus, a2Corpus;
 
-    public DocumentProcessor(Context context, InputCorpus textCorpus, InputCorpus a1Corpus, InputCorpus a2Corpus,
-                             OutputCorpus outputCorpus) {
-        super(context, textCorpus, outputCorpus);
+    public DocumentProcessor(Context context, InputCorpus textCorpus, InputCorpus a1Corpus, InputCorpus a2Corpus) {
+        super(context, textCorpus);
         this.a1Corpus = a1Corpus;
         this.a2Corpus = a2Corpus;
     }
@@ -54,13 +51,17 @@ public class DocumentProcessor extends BaseProcessor {
             p.add(new SentenceTagger(processors.getSentenceSplitter(), sentencesPositions));
             p.add(new NLP(corpus, processors.getParser(), sentencesPositions));
 
-            p.add(new A2Loader(corpus, a1Corpus, a2Corpus));
+//            p.add(new A2Loader(corpus, a1Corpus, a2Corpus));
+
+            p.add(new A1Loader(corpus, a1Corpus));
+            p.add(new A1Loader(corpus, a2Corpus));
 
             // Change to proper writer
-            p.add(new CoNLLCustomWriter(corpus));
+//            p.add(new CoNLLCustomWriter(corpus));
+//            p.add(new LabelWriter(corpus));
 
             // Run processing pipeline
-            p.run(getInputCorpus().getInStream(), getOutputCorpus().getOutStream());
+            p.run(getInputCorpus().getInStream());
 
             // Return processors
             getContext().put(processors);
