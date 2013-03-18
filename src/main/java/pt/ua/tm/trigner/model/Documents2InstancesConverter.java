@@ -3,15 +3,16 @@ package pt.ua.tm.trigner.model;
 import cc.mallet.pipe.Pipe;
 import cc.mallet.types.Instance;
 import cc.mallet.types.InstanceList;
+import com.google.common.collect.Multimap;
 import org.apache.commons.lang.StringUtils;
 import pt.ua.tm.gimli.corpus.*;
 import pt.ua.tm.gimli.tree.Tree;
 import pt.ua.tm.trigner.configuration.Configuration;
 import pt.ua.tm.trigner.documents.Documents;
 
+import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 
 /**
@@ -21,7 +22,7 @@ import java.util.Set;
  * Time: 17:39
  * To change this template use File | Settings | File Templates.
  */
-public class TempData {
+public class Documents2InstancesConverter {
 
     public static InstanceList getInstanceList(final Documents documents, final Pipe pipe) {
         return getInstanceList(documents, pipe, null);
@@ -59,16 +60,18 @@ public class TempData {
             sb.append("\t");
 
             // Pre-processed features
-            Map<String, String> featuresMap = token.getFeaturesMap();
+            Multimap<String, String> featuresMap = token.getFeaturesMap();
             for (String key : featuresMap.keySet()) {
-                String value = featuresMap.get(key);
+                Collection<String> values = featuresMap.get(key);
 
-                sb.append(key);
-                if (!value.equals("")) {
-                    sb.append("=");
-                    sb.append(value);
+                for (String value : values) {
+                    sb.append(key);
+                    if (!value.equals("")) {
+                        sb.append("=");
+                        sb.append(value);
+                    }
+                    sb.append("\t");
                 }
-                sb.append("\t");
             }
 
             // Label

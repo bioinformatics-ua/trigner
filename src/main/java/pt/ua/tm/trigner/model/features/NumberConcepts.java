@@ -1,9 +1,12 @@
 package pt.ua.tm.trigner.model.features;
 
-import pt.ua.tm.gimli.corpus.*;
+import pt.ua.tm.gimli.corpus.AnnotationID;
+import pt.ua.tm.gimli.corpus.Identifier;
+import pt.ua.tm.gimli.corpus.Sentence;
+import pt.ua.tm.gimli.corpus.Token;
+import pt.ua.tm.gimli.features.corpus.pipeline.FeatureExtractor;
 import pt.ua.tm.gimli.tree.Tree;
 import pt.ua.tm.trigner.configuration.Configuration;
-import pt.ua.tm.trigner.documents.Documents;
 
 import java.util.List;
 
@@ -14,19 +17,16 @@ import java.util.List;
  * Time: 14:56
  * To change this template use File | Settings | File Templates.
  */
-public class NumberConcepts {
+public class NumberConcepts implements FeatureExtractor {
 
-    public static void add(Documents documents) {
-        for (Corpus corpus : documents) {
-            for (Sentence sentence : corpus) {
-                for (String concept : Configuration.getConcepts()) {
-                    setNumberOfConceptAsFeature(sentence, concept);
-                }
-            }
+    @Override
+    public void extract(Sentence sentence) {
+        for (String concept : Configuration.getConcepts()) {
+            setNumberOfConceptAsFeature(sentence, concept);
         }
     }
 
-    private static int getNumberOfConcept(final Sentence sentence, final String concept) {
+    private int getNumberOfConcept(final Sentence sentence, final String concept) {
         List<AnnotationID> annotations = sentence.getTreeAnnotations(Tree.TreeTraversalOrderEnum.PRE_ORDER, true);
         int counter = 0;
         for (AnnotationID annotation : annotations) {
@@ -40,7 +40,7 @@ public class NumberConcepts {
         return counter;
     }
 
-    private static void setNumberOfConceptAsFeature(Sentence sentence, final String concept) {
+    private void setNumberOfConceptAsFeature(Sentence sentence, final String concept) {
 
         int numberOfConcepts = getNumberOfConcept(sentence, concept);
 

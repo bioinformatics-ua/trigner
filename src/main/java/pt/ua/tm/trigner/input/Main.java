@@ -21,11 +21,15 @@ public class Main {
 
     public static void main(String... args) {
 
-        String inputFolder = "resources/corpus/bionlp2009/train/gold";
+//        String inputFolder = "resources/corpus/bionlp2009/train/gold";
 //        String inputFolder = "resources/corpus/bionlp2013/cg/dev/";
-        String gdepPath = "/Volumes/data/Dropbox/PhD/work/platform/code/neji/resources/tools/gdep/gdep_gimli";
-        String outputFile = "resources/corpus/bionlp2009/train/documents.gz";
-        int numThreads = 4;
+        String gdepPath = "/Volumes/data/Dropbox/PhD/work/platform/code/neji/resources/tools/gdep";
+//        String outputFile = "resources/corpus/bionlp2009/train/documents.gz";
+        int numThreads = 1;
+
+        String inputFolder = "/Users/david/Downloads/tmp/";
+        String outputFile = "/Users/david/Downloads/tmp/documents.gz";
+
 
         Documents documents = DocumentsLoader.load(inputFolder, gdepPath, numThreads);
 

@@ -1,9 +1,12 @@
 package pt.ua.tm.trigner.model.features;
 
-import pt.ua.tm.gimli.corpus.*;
+import pt.ua.tm.gimli.corpus.AnnotationID;
+import pt.ua.tm.gimli.corpus.Identifier;
+import pt.ua.tm.gimli.corpus.Sentence;
+import pt.ua.tm.gimli.corpus.Token;
+import pt.ua.tm.gimli.features.corpus.pipeline.FeatureExtractor;
 import pt.ua.tm.gimli.tree.Tree;
 import pt.ua.tm.trigner.configuration.Configuration;
-import pt.ua.tm.trigner.documents.Documents;
 
 import java.util.Arrays;
 import java.util.HashSet;
@@ -17,21 +20,18 @@ import java.util.Set;
  * Time: 16:03
  * To change this template use File | Settings | File Templates.
  */
-public class ConceptTags {
+public class ConceptTags implements FeatureExtractor {
 
-    public static void add(Documents documents) {
-        for (Corpus corpus : documents) {
-            for (Sentence sentence : corpus) {
-                List<AnnotationID> annotations = sentence.getTreeAnnotations(Tree.TreeTraversalOrderEnum.PRE_ORDER, true);
-                for (Token token : sentence.getTokens()) {
-                    addAnnotationsAsFeatures(annotations, token);
-                }
-            }
+    @Override
+    public void extract(Sentence sentence) {
+        List<AnnotationID> annotations = sentence.getTreeAnnotations(Tree.TreeTraversalOrderEnum.PRE_ORDER, true);
+        for (Token token : sentence.getTokens()) {
+            addAnnotationsAsFeatures(annotations, token);
         }
     }
 
     // Get concept annotations
-    public static void addAnnotationsAsFeatures(final List<AnnotationID> annotations, final Token token) {
+    private void addAnnotationsAsFeatures(final List<AnnotationID> annotations, final Token token) {
         final Set<String> semGroups = new HashSet<>();
 
         for (final AnnotationID annotation : annotations) {

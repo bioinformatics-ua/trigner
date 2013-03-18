@@ -5,7 +5,6 @@ import org.slf4j.LoggerFactory;
 import pt.ua.tm.gimli.config.ModelConfig;
 import pt.ua.tm.gimli.exception.GimliException;
 import pt.ua.tm.trigner.documents.Documents;
-import pt.ua.tm.trigner.model.features.Features;
 
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
@@ -40,10 +39,10 @@ public class Main {
         }
 
         // Add pre-processing features
-        Features.add(new Documents[]{trainDocuments, devDocuments});
+//        Features.add(new Documents[]{trainDocuments, devDocuments});
 
         // Get best models for each trigger
-        Map<String, Model> models = Optmization.run(trainDocuments, devDocuments);
+        Map<String, Model> models = Optimization.run(trainDocuments, devDocuments);
 
         // Store models
         writeModels(models, outputFolder);

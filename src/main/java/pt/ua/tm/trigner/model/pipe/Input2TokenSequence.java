@@ -56,35 +56,16 @@ public class Input2TokenSequence extends Pipe {
 
                 String key = parts[0];
 
-                boolean addFeature = false;
-                if (config.isToken() && key.equals("WORD")) {
-                    addFeature = true;
-                }
-                if (config.isLemma() && key.equals("LEMMA")) {
-                    addFeature = true;
-                }
-                if (config.isChunk() && key.equals("CHUNK")) {
-                    addFeature = true;
-                }
-                if (config.isPos() && key.equals("POS")) {
-                    addFeature = true;
-                }
-                if (config.isNLP() && (key.equals("SUB") ||
-                        key.equals("OBJ") ||
-                        key.equals("NMOD_OF") ||
-                        key.equals("NMOD_BY") ||
-                        key.equals("VMOD_OF") ||
-                        key.equals("VMOD_BY"))) {
-                    addFeature = true;
-                }
+                boolean addFeature = true;
 
-
-                if (key.equals("DEP_TOK") || key.equals("DEP_TAG")) {
-                    addFeature = true;
+                if (!config.isToken() && key.equals("WORD")) {
+                    addFeature = false;
                 }
-
-                if (config.isConcepts() && (key.equals("CONCEPT") || key.equals("NUM_CONCEPT"))) {
-                    addFeature = true;
+                if (!config.isLemma() && key.equals("LEMMA")) {
+                    addFeature = false;
+                }
+                if (!config.isPos() && key.equals("POS")) {
+                    addFeature = false;
                 }
 
                 if (addFeature) {

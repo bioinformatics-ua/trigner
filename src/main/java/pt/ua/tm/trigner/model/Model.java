@@ -13,12 +13,8 @@ import pt.ua.tm.gimli.config.Constants;
 import pt.ua.tm.gimli.config.ModelConfig;
 import pt.ua.tm.gimli.corpus.Corpus;
 import pt.ua.tm.gimli.exception.GimliException;
-import pt.ua.tm.gimli.features.*;
+import pt.ua.tm.gimli.features.mallet.*;
 import pt.ua.tm.gimli.model.CRFBase;
-import pt.ua.tm.trigner.model.pipe.DependencyFeaturePath;
-import pt.ua.tm.trigner.model.pipe.DependencyPath;
-import pt.ua.tm.trigner.model.pipe.DependencyWindow;
-import pt.ua.tm.trigner.model.pipe.RemoveDependencyOutput;
 
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -130,25 +126,15 @@ public class Model extends CRFBase {
             pipe.add(new WordShape());
         }
 
-
-        pipe.add(new DependencyWindow("DEP_WINDOW", 3, Pattern.compile("(LEMMA|POS|CHUNK)=.*")));
-//        pipe.add(new DependencyFeaturePath("1DEP_PATH_WORD", 1, Pattern.compile("WORD=.*")));
-//        pipe.add(new DependencyFeaturePath("2DEP_PATH_WORD", 2, Pattern.compile("WORD=.*")));
-//        pipe.add(new DependencyFeaturePath("2DEP_PATH_LEMMA", 2, Pattern.compile("LEMMA=.*")));
-//        pipe.add(new DependencyFeaturePath("2DEP_PATH_POS", 2, Pattern.compile("POS=.*")));
-//        pipe.add(new DependencyFeaturePath("2DEP_PATH_TAG", 2, Pattern.compile("DEP_TAG=.*")));
-//        pipe.add(new DependencyFeaturePath("2DEP_PATH_CHUNK", 2, Pattern.compile("CHUNK=.*")));
-//        pipe.add(new DependencyFeaturePath("3DEP_PATH_WORD", 3, Pattern.compile("WORD=.*")));
-        pipe.add(new DependencyFeaturePath("3DEP_PATH_LEMMA", 3, Pattern.compile("LEMMA=.*")));
-        pipe.add(new DependencyPath("DEP_PATH", 3, DependencyPath.DependencyPathInfo.TAG));
-        pipe.add(new DependencyPath("DEP_PATH", 3, DependencyPath.DependencyPathInfo.COMPOSITE));
-        pipe.add(new DependencyPath("DEP_PATH", 3, DependencyPath.DependencyPathInfo.LEMMA));
-
-        pipe.add(new RemoveDependencyOutput());
-
         // Conjunctions
         if (config.isConjunctions()) {
-            pipe.add(new OffsetConjunctions(true, Pattern.compile("LEMMA=.*"), new int[][]{{-1, 0}, {-2, -1}, {0, 1}, {-1, 1}, {-3, -1}}));
+
+            if (config.isLemma()) {
+                pipe.add(new OffsetConjunctions(true, Pattern.compile("LEMMA=.*"), new int[][]{{-1, 0}, {-2, -1}, {0, 1}, {-1, 1}, {-3, -1}}));
+            } else if (config.isToken()) {
+                pipe.add(new OffsetConjunctions(true, Pattern.compile("WORD=.*"), new int[][]{{-1, 0}, {-2, -1}, {0, 1}, {-1, 1}, {-3, -1}}));
+            }
+
             pipe.add(new OffsetConjunctions(true, Pattern.compile("POS=.*"), new int[][]{{-1, 0}, {-2, -1}, {0, 1}, {-1, 1}, {-3, -1}}));
 //            pipe.add(new OffsetConjunctions(true, new int[][]{{-1, 0}, {-2, -1}, {0, 1}, {-1, 1}, {-3, -1}}));
         }

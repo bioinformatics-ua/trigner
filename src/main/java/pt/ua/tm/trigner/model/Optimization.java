@@ -23,9 +23,9 @@ import java.util.Map;
  * Time: 00:13
  * To change this template use File | Settings | File Templates.
  */
-public class Optmization {
+public class Optimization {
 
-    private static Logger logger = LoggerFactory.getLogger(Optmization.class);
+    private static Logger logger = LoggerFactory.getLogger(Optimization.class);
 
     public static Map<String, Model> run(final String trainCorpusFolderPath, final String devCorpusFolderPath,
                                          int numThreads)
@@ -83,11 +83,11 @@ public class Optmization {
                     Pipe pipe = model.getFeaturePipe(dictionaryPath);
 
                     // Train
-                    InstanceList train = TempData.getInstanceList(trainDocuments, pipe, label);
+                    InstanceList train = Documents2InstancesConverter.getInstanceList(trainDocuments, pipe, label);
                     model.train(train);
 
                     // Dev
-                    InstanceList dev = TempData.getInstanceList(devDocuments, pipe, label);
+                    InstanceList dev = Documents2InstancesConverter.getInstanceList(devDocuments, pipe, label);
 
                     // Get performance
                     Evaluator evaluator = new Evaluator(model);

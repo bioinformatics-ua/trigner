@@ -15,8 +15,8 @@ import pt.ua.tm.gimli.tree.Tree;
 import pt.ua.tm.gimli.tree.TreeNode;
 import pt.ua.tm.trigner.configuration.Configuration;
 import pt.ua.tm.trigner.documents.Documents;
+import pt.ua.tm.trigner.model.Documents2InstancesConverter;
 import pt.ua.tm.trigner.model.Model;
-import pt.ua.tm.trigner.model.TempData;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -78,7 +78,7 @@ public class Annotator {
         Pipe pipe = crf.getInputPipe();
 
 //        String sentenceInModelFormat = getSentenceInModelFormat(sentence);
-        String sentenceInModelFormat = TempData.getSentenceData(sentence);
+        String sentenceInModelFormat = Documents2InstancesConverter.getSentenceData(sentence);
 
         // Get instance
         Instance instance = new Instance(sentenceInModelFormat, null, 0, null);
