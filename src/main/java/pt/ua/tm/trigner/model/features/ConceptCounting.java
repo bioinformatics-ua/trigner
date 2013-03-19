@@ -17,7 +17,7 @@ import java.util.List;
  * Time: 14:56
  * To change this template use File | Settings | File Templates.
  */
-public class NumberConcepts implements FeatureExtractor {
+public class ConceptCounting implements FeatureExtractor {
 
     @Override
     public void extract(Sentence sentence) {

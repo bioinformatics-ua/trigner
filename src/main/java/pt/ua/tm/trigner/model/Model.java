@@ -10,11 +10,12 @@ import cc.mallet.types.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import pt.ua.tm.gimli.config.Constants;
-import pt.ua.tm.gimli.config.ModelConfig;
 import pt.ua.tm.gimli.corpus.Corpus;
 import pt.ua.tm.gimli.exception.GimliException;
 import pt.ua.tm.gimli.features.mallet.*;
 import pt.ua.tm.gimli.model.CRFBase;
+import pt.ua.tm.trigner.model.configuration.ModelConfiguration;
+import pt.ua.tm.trigner.model.features.NGramsUtil;
 
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -36,9 +37,11 @@ public class Model extends CRFBase {
     private static String CAPS = "[A-Z]";
     private static String LOW = "[a-z]";
     private String[] allowedTags;
+    private ModelConfiguration mc;
 
-    public Model(final ModelConfig config) {
-        super(config, Constants.Parsing.FW);
+    public Model(final ModelConfiguration mc) {
+        super(null, Constants.Parsing.FW);
+        this.mc = mc;
     }
 
     @Deprecated
@@ -48,23 +51,12 @@ public class Model extends CRFBase {
 
     public Pipe getFeaturePipe(final String dictionaryPath) {
         ArrayList<Pipe> pipe = new ArrayList<>();
-        ModelConfig config = getConfig();
 
         // Input parsing
-        pipe.add(new pt.ua.tm.trigner.model.pipe.Input2TokenSequence(config));
-
-        if (config.isVerbs()) {
-//            File file = new File("resources/dictionaries/triggers.txt");
-            File file = new File(dictionaryPath);
-            try {
-                pipe.add(new TrieLexiconMembership("TRIGGER", file, true));
-            } catch (FileNotFoundException ex) {
-                throw new RuntimeException("There was a problem reading the dictionary for triggers matching: " + file.getName(), ex);
-            }
-        }
+        pipe.add(new pt.ua.tm.trigner.model.pipe.Input2TokenSequence(mc));
 
         // Capitalization
-        if (config.isCapitalization()) {
+        if (mc.isProperty("capitalization")) {
             pipe.add(new RegexMatches("InitCap", Pattern.compile(CAPS + ".*")));
             pipe.add(new RegexMatches("EndCap", Pattern.compile(".*" + CAPS)));
             pipe.add(new RegexMatches("AllCaps", Pattern.compile(CAPS + "+")));
@@ -74,14 +66,14 @@ public class Model extends CRFBase {
         }
 
         // Counting
-        if (config.isCounting()) {
+        if (mc.isProperty("counting")) {
             pipe.add(new NumberOfCap());
             pipe.add(new NumberOfDigit());
             pipe.add(new WordLength());
         }
 
         // Symbols
-        if (config.isSymbols()) {
+        if (mc.isProperty("symbols")) {
             pipe.add(new RegexMatches("Hyphen", Pattern.compile(".*[-].*")));
             pipe.add(new RegexMatches("BackSlash", Pattern.compile(".*[/].*")));
             pipe.add(new RegexMatches("OpenSquare", Pattern.compile(".*[\\[].*")));
@@ -102,53 +94,52 @@ public class Model extends CRFBase {
 
 
         // Char n-gram
-        if (config.isNgrams()) {
-//            pipe.add(new TokenTextCharNGrams("CHARNGRAM=", new int[]{2, 3, 4}));
-            pipe.add(new TokenTextCharNGrams("CHARNGRAM=", new int[]{3, 4}));
+        if (mc.isProperty("char_ngrams")) {
+            int[] ngrams = NGramsUtil.fromString(mc.getProperty("char_ngrams_sizes"));
+            pipe.add(new TokenTextCharNGrams("CHARNGRAM=", ngrams));
         }
 
         // Suffixes
-        if (config.isSuffix()) {
-//            pipe.add(new TokenTextCharSuffix("2SUFFIX=", 2));
-            pipe.add(new TokenTextCharSuffix("3SUFFIX=", 3));
-            pipe.add(new TokenTextCharSuffix("4SUFFIX=", 4));
+        if (mc.isProperty("suffix")) {
+            int[] ngrams = NGramsUtil.fromString(mc.getProperty("suffix_sizes"));
+            for (int ngram : ngrams) {
+                pipe.add(new TokenTextCharSuffix(ngram + "SUFFIX=", ngram));
+            }
         }
 
         // Prefixes
-        if (config.isPrefix()) {
-//            pipe.add(new TokenTextCharPrefix("2PREFIX=", 2));
-            pipe.add(new TokenTextCharPrefix("3PREFIX=", 3));
-            pipe.add(new TokenTextCharPrefix("4PREFIX=", 4));
+        if (mc.isProperty("prefix")) {
+            int[] ngrams = NGramsUtil.fromString(mc.getProperty("prefix_sizes"));
+            for (int ngram : ngrams) {
+                pipe.add(new TokenTextCharSuffix(ngram + "PREFIX=", ngram));
+            }
+
         }
 
         // Word shape
-        if (config.isMorphology()) {
+        if (mc.isProperty("word_shape")) {
             pipe.add(new WordShape());
         }
 
-        // Conjunctions
-        if (config.isConjunctions()) {
-
-            if (config.isLemma()) {
-                pipe.add(new OffsetConjunctions(true, Pattern.compile("LEMMA=.*"), new int[][]{{-1, 0}, {-2, -1}, {0, 1}, {-1, 1}, {-3, -1}}));
-            } else if (config.isToken()) {
-                pipe.add(new OffsetConjunctions(true, Pattern.compile("WORD=.*"), new int[][]{{-1, 0}, {-2, -1}, {0, 1}, {-1, 1}, {-3, -1}}));
+        if (mc.isProperty("triggers")) {
+            File file = new File(dictionaryPath);
+            try {
+                pipe.add(new TrieLexiconMembership("TRIGGER", file, true));
+            } catch (FileNotFoundException ex) {
+                throw new RuntimeException("There was a problem reading the dictionary for triggers matching: " + file.getName(), ex);
             }
-
-            pipe.add(new OffsetConjunctions(true, Pattern.compile("POS=.*"), new int[][]{{-1, 0}, {-2, -1}, {0, 1}, {-1, 1}, {-3, -1}}));
-//            pipe.add(new OffsetConjunctions(true, new int[][]{{-1, 0}, {-2, -1}, {0, 1}, {-1, 1}, {-3, -1}}));
         }
 
-
-        // WINDOW
-        if (config.isWindow()) {
-//            pipe.add(new FeaturesInWindow("WINDOW=", -1, 0, Pattern.compile("(LEMMA|POS|CHUNK)=.*"), true));
-//            pipe.add(new FeaturesInWindow("WINDOW=", -2, -1, Pattern.compile("(LEMMA|POS|CHUNK)=.*"), true));
-//            pipe.add(new FeaturesInWindow("WINDOW=", 0, 1, Pattern.compile("(LEMMA|POS|CHUNK)=.*"), true));
-//            pipe.add(new FeaturesInWindow("WINDOW=", -1, 1, Pattern.compile("(LEMMA|POS|CHUNK)=.*"), true));
-//            pipe.add(new FeaturesInWindow("WINDOW=", -3, -1, Pattern.compile("(LEMMA|POS|CHUNK)=.*"), true));
-
-            pipe.add(new FeaturesInWindow("WINDOW=", -3, 3));
+        ModelConfiguration.ContextType context = ModelConfiguration.ContextType.valueOf(mc.getProperty("context"));
+        switch (context) {
+            case WINDOW:
+                pipe.add(new FeaturesInWindow("WINDOW=", -3, 3));
+                break;
+            case CONJUNCTIONS:
+                pipe.add(new OffsetConjunctions(true, Pattern.compile("WORD=.*"), new int[][]{{-1, 0}, {-2, -1}, {0, 1}, {-1, 1}, {-3, -1}}));
+                pipe.add(new OffsetConjunctions(true, Pattern.compile("LEMMA=.*"), new int[][]{{-1, 0}, {-2, -1}, {0, 1}, {-1, 1}, {-3, -1}}));
+                pipe.add(new OffsetConjunctions(true, Pattern.compile("POS=.*"), new int[][]{{-1, 0}, {-2, -1}, {0, 1}, {-1, 1}, {-3, -1}}));
+                break;
         }
 
         // Print

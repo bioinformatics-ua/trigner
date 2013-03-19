@@ -21,9 +21,11 @@ import pt.ua.tm.trigner.evaluation.Trigger;
 import pt.ua.tm.trigner.evaluation.TriggerList;
 import pt.ua.tm.trigner.model.Documents2InstancesConverter;
 import pt.ua.tm.trigner.model.Model;
+import pt.ua.tm.trigner.model.ModelPipelineFeatureExtractor;
+import pt.ua.tm.trigner.model.configuration.ModelConfiguration;
+import pt.ua.tm.trigner.model.features.ConceptCounting;
 import pt.ua.tm.trigner.model.features.ConceptTags;
 import pt.ua.tm.trigner.model.features.FeatureType;
-import pt.ua.tm.trigner.model.features.NumberConcepts;
 import pt.ua.tm.trigner.model.features.dependency.*;
 import pt.ua.tm.trigner.model.features.pipeline.DocumentsPipelineFeatureExtractor;
 import pt.ua.tm.trigner.model.features.shortestpath.*;
@@ -53,23 +55,23 @@ public class TrainModel {
         String trainDocumentsFilePath = "/Users/david/Downloads/tmp/documents.gz";
 //        String devDocumentsFilePath = "resources/corpus/bionlp2009/dev/documents.gz";
         String label = "Gene_expression";
-        String modelConfigFilePath = "/Users/david/Downloads/" + label + ".config";
+//        String modelConfigFilePath = "/Users/david/Downloads/" + label + ".config";
 
 
         Documents trainDocuments, devDocuments;
-        ModelConfig modelConfig;
+        ModelConfiguration modelConfiguration = new ModelConfiguration();
 
         try {
             trainDocuments = Documents.read(new GZIPInputStream(new FileInputStream(trainDocumentsFilePath)));
 //            devDocuments = Documents.read(new GZIPInputStream(new FileInputStream(devDocumentsFilePath)));
-            modelConfig = new ModelConfig(modelConfigFilePath);
+            modelConfiguration.load(new FileInputStream("/Users/david/Downloads/model.config"));
         } catch (IOException | ClassNotFoundException ex) {
             logger.error("ERROR:", ex);
             return;
         }
 
         // Add pre-processing features
-        PipelineFeatureExtractor p = getFeatureExtractorPipeline();
+        PipelineFeatureExtractor p = ModelPipelineFeatureExtractor.get(modelConfiguration);
         p.run(trainDocuments);
 
         for (Corpus corpus : trainDocuments) {
@@ -109,7 +111,7 @@ public class TrainModel {
             }
         }
 
-        Model model = new Model(modelConfig);
+        Model model = new Model(modelConfiguration);
         String dictionaryPath = "resources/dictionaries/" + label + ".txt";
         Pipe pipe = model.getFeaturePipe(dictionaryPath);
 
@@ -127,37 +129,6 @@ public class TrainModel {
 //        evaluator.evaluate(devInstanceList);
         logger.info("P:{}\tR:{}\tF1:{}", new Object[]{evaluator.getPrecision(), evaluator.getRecall(),
                 evaluator.getF1()});
-    }
-
-    private static PipelineFeatureExtractor getFeatureExtractorPipeline() {
-        PipelineFeatureExtractor p = new DocumentsPipelineFeatureExtractor();
-
-        p.add(new ChunkTags("CHUNK"));
-        p.add(new ConceptTags());
-        p.add(new NumberConcepts());
-//        p.add(new DependencyWindowFeature("DEP_PATH",  new FeatureType[]{FeatureType.CHUNK, FeatureType.POS, FeatureType.LEMMA}, true, 3));
-//        p.add(new DependencyNER());
-
-        // Dependency Features
-        p.add(new DPEdgeWalk("DP_EDGE_WALK", 3));
-        p.add(new DPVertexWalk("DP_VERTEX_WALK", FeatureType.LEMMA, 3));
-        p.add(new DPVertexEdgeWalk("DP_VERTEX_EDGE_WALK", FeatureType.LEMMA, 3));
-
-        p.add(new DPVertexNGrams("DP_VERTEX_3GRAMS", FeatureType.LEMMA, 3, 3));
-
-        p.add(new DPEdgeNGrams("DP_EDGE_3GRAMS", 3, 3));
-
-        // Shortest Path features
-        p.add(new SPEdgeDistance("SP_EDGE_DISTANCE"));
-
-        p.add(new SPEdgeWalk("SP_EDGE_WALK"));
-        p.add(new SPVertexWalk("SP_VERTEX_WALK", FeatureType.LEMMA));
-
-        p.add(new SPVertexEdgeWalk("SP_VERTEX_EDGE_WALK", FeatureType.LEMMA));
-
-        p.add(new SPVertexNGrams("SP_VERTEX_3GRAMS", FeatureType.LEMMA, 3));
-
-        return p;
     }
 
     private static void eval(Documents documents, Model model) {

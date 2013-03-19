@@ -79,7 +79,7 @@ public class Optimization {
                 for (int order = 1; order <= 3; order++) {
                     ModelConfig config = getModelConfig(flags, order);
 
-                    Model model = new Model(config);
+                    Model model = new Model(null);
                     Pipe pipe = model.getFeaturePipe(dictionaryPath);
 
                     // Train
