@@ -39,7 +39,7 @@ public class SPEdgeWalk implements FeatureExtractor {
 
             DijkstraShortestPath path = new DijkstraShortestPath(sentence.getDependencyGraph(), token, closestToken);
 
-            if (path != null) {
+            if (path != null && path.getPathEdgeList() != null) {
                 // Edge walk
                 StringBuilder sb = new StringBuilder();
                 for (Object obj : path.getPathEdgeList()) {

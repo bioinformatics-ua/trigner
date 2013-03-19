@@ -19,7 +19,7 @@ import pt.ua.tm.trigner.model.features.shortestpath.*;
  * Time: 23:17
  * To change this template use File | Settings | File Templates.
  */
-public class ModelPipelineFeatureExtractor {
+public class ProcessingFeaturePipeline {
     public static PipelineFeatureExtractor get(final ModelConfiguration mc) {
         PipelineFeatureExtractor p = new DocumentsPipelineFeatureExtractor();
         FeatureType ft;
@@ -30,10 +30,10 @@ public class ModelPipelineFeatureExtractor {
         }
 
         // Concepts
-        if (mc.isProperty("concept_tags")) {
+        if (mc.isProperty("concepts_tags")) {
             p.add(new ConceptTags());
         }
-        if (mc.isProperty("concept_counting")) {
+        if (mc.isProperty("concepts_counting")) {
             p.add(new ConceptCounting());
         }
 

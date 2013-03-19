@@ -58,7 +58,7 @@ public class Input2TokenSequence extends Pipe {
 
                 boolean addFeature = true;
 
-                if (!mc.isProperty("word") && key.equals("WORD")) {
+                if (!mc.isProperty("token") && key.equals("WORD")) {
                     addFeature = false;
                 }
                 if (!mc.isProperty("lemma") && key.equals("LEMMA")) {

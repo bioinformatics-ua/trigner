@@ -44,7 +44,7 @@ public class SPVertexEdgeWalk implements FeatureExtractor {
             DijkstraShortestPath path = new DijkstraShortestPath(sentence.getDependencyGraph(), token, closestToken);
 
 
-            if (path != null) {
+            if (path != null && path.getPathEdgeList() != null) {
                 // Vertex walk
                 StringBuilder sb = new StringBuilder();
 

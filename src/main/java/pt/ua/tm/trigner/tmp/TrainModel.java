@@ -6,11 +6,9 @@ import org.jgrapht.Graph;
 import org.jgrapht.traverse.DepthFirstIterator;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import pt.ua.tm.gimli.config.ModelConfig;
 import pt.ua.tm.gimli.corpus.*;
 import pt.ua.tm.gimli.corpus.dependency.DependencyTag;
 import pt.ua.tm.gimli.corpus.dependency.LabeledEdge;
-import pt.ua.tm.gimli.features.corpus.ChunkTags;
 import pt.ua.tm.gimli.features.corpus.pipeline.PipelineFeatureExtractor;
 import pt.ua.tm.gimli.tree.Tree;
 import pt.ua.tm.trigner.configuration.Configuration;
@@ -21,14 +19,9 @@ import pt.ua.tm.trigner.evaluation.Trigger;
 import pt.ua.tm.trigner.evaluation.TriggerList;
 import pt.ua.tm.trigner.model.Documents2InstancesConverter;
 import pt.ua.tm.trigner.model.Model;
-import pt.ua.tm.trigner.model.ModelPipelineFeatureExtractor;
+import pt.ua.tm.trigner.model.ModelFeaturePipeline;
+import pt.ua.tm.trigner.model.ProcessingFeaturePipeline;
 import pt.ua.tm.trigner.model.configuration.ModelConfiguration;
-import pt.ua.tm.trigner.model.features.ConceptCounting;
-import pt.ua.tm.trigner.model.features.ConceptTags;
-import pt.ua.tm.trigner.model.features.FeatureType;
-import pt.ua.tm.trigner.model.features.dependency.*;
-import pt.ua.tm.trigner.model.features.pipeline.DocumentsPipelineFeatureExtractor;
-import pt.ua.tm.trigner.model.features.shortestpath.*;
 import pt.ua.tm.trigner.output.Annotator;
 
 import java.io.FileInputStream;
@@ -71,7 +64,7 @@ public class TrainModel {
         }
 
         // Add pre-processing features
-        PipelineFeatureExtractor p = ModelPipelineFeatureExtractor.get(modelConfiguration);
+        PipelineFeatureExtractor p = ProcessingFeaturePipeline.get(modelConfiguration);
         p.run(trainDocuments);
 
         for (Corpus corpus : trainDocuments) {
@@ -113,7 +106,7 @@ public class TrainModel {
 
         Model model = new Model(modelConfiguration);
         String dictionaryPath = "resources/dictionaries/" + label + ".txt";
-        Pipe pipe = model.getFeaturePipe(dictionaryPath);
+        Pipe pipe = ModelFeaturePipeline.get(modelConfiguration, dictionaryPath);
 
         // Load data
         InstanceList trainInstanceList = Documents2InstancesConverter.getInstanceList(trainDocuments, pipe, label);

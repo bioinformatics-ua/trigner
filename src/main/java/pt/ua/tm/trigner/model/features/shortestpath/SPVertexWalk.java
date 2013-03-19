@@ -44,13 +44,15 @@ public class SPVertexWalk implements FeatureExtractor {
             DijkstraShortestPath path = new DijkstraShortestPath(sentence.getDependencyGraph(), token, closestToken);
 
 
-            if (path != null) {
+            if (path != null && path.getPathEdgeList() != null) {
                 // Vertex walk
                 StringBuilder sb = new StringBuilder();
 
                 Token previous = token;
                 sb.append(TokenFeatureUtil.getFeature(token, feature));
                 sb.append("-");
+
+
 
                 for (Object obj : path.getPathEdgeList()) {
                     LabeledEdge<Token, DependencyTag> edge = (LabeledEdge<Token, DependencyTag>) obj;

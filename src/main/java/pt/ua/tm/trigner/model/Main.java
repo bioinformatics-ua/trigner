@@ -2,13 +2,11 @@ package pt.ua.tm.trigner.model;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import pt.ua.tm.gimli.config.ModelConfig;
 import pt.ua.tm.gimli.exception.GimliException;
 import pt.ua.tm.trigner.documents.Documents;
+import pt.ua.tm.trigner.model.configuration.ModelConfiguration;
 
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
-import java.io.IOException;
+import java.io.*;
 import java.util.Map;
 import java.util.zip.GZIPInputStream;
 import java.util.zip.GZIPOutputStream;
@@ -25,18 +23,41 @@ public class Main {
 
     public static void main(String... args) {
         String trainDocumentsFilePath = "resources/corpus/bionlp2009/train/documents.gz";
-        String devDocumentsFilePath = "resources/corpus/bionlp2009/dev/documents.gz";
-        String outputFolder = "resources/models/new/bionlp2009/";
+//        String devDocumentsFilePath = "resources/corpus/bion lp2009/dev/documents.gz";
+        String outputFolder = "resources/models/bionlp2009/";
 
-        Documents trainDocuments, devDocuments;
+
+        boolean verbose = false;
+
+        // Disable output from Mallet and GDepTranslator
+        if (!verbose) {
+            System.setOut(new PrintStream(new OutputStream() {
+                @Override
+                public void write(int b) {
+                }
+            }));
+            System.setErr(new PrintStream(new OutputStream() {
+                @Override
+                public void write(int b) {
+                }
+            }));
+        }
+
+        Documents documents, trainDocuments, devDocuments;
 
         try {
-            trainDocuments = Documents.read(new GZIPInputStream(new FileInputStream(trainDocumentsFilePath)));
-            devDocuments = Documents.read(new GZIPInputStream(new FileInputStream(devDocumentsFilePath)));
+            documents = Documents.read(new GZIPInputStream(new FileInputStream(trainDocumentsFilePath)));
+//            devDocuments = Documents.read(new GZIPInputStream(new FileInputStream(devDocumentsFilePath)));
         } catch (IOException | ClassNotFoundException ex) {
             logger.error("ERROR:", ex);
             return;
         }
+
+        Documents[] docs = documents.splitInOrder(new double[]{0.85, 0.15});
+
+
+        trainDocuments = docs[0];
+        devDocuments = docs[1];
 
         // Add pre-processing features
 //        Features.add(new Documents[]{trainDocuments, devDocuments});
@@ -52,7 +73,7 @@ public class Main {
     private static void writeModels(final Map<String, Model> models, final String outputFolder) {
         for (String label : models.keySet()) {
             Model model = models.get(label);
-            ModelConfig config = model.getConfig();
+            ModelConfiguration mc = model.getModelConfiguration();
 
             // Write properties
             writeProperties(outputFolder, label);
@@ -69,7 +90,7 @@ public class Main {
             // Save best config
             name = outputFolder + label + ".config";
             try (FileOutputStream fos = new FileOutputStream(name)) {
-                config.write(fos);
+                mc.store(fos, label);
             } catch (IOException e) {
                 logger.error("There was a problem writing the model configuration to the file: " + name, e);
                 return;

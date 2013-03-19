@@ -50,7 +50,7 @@ public class SPVertexNGrams implements FeatureExtractor {
             DijkstraShortestPath path = new DijkstraShortestPath(sentence.getDependencyGraph(), token, closestToken);
 
 
-            if (path != null) {
+            if (path != null && path.getPathEdgeList() != null) {
                 // Vertex walk
                 List<String> features = new ArrayList<>();
 

@@ -57,6 +57,18 @@ public class NGramsUtil {
     }
 
     public static String toString(final int[] ngrams) {
-        return StringUtils.join(Arrays.asList(ngrams), ',');
+
+        StringBuilder sb = new StringBuilder();
+        for (int ngram:ngrams){
+            sb.append(ngram);
+            sb.append(",");
+        }
+        if (sb.length() > 0) {
+            sb.setLength(sb.length()-1);
+        }
+
+//        String str = StringUtils.join(Arrays.asList(ngrams), ',');
+
+        return sb.toString();
     }
 }
