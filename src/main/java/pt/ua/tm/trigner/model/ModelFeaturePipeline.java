@@ -88,7 +88,7 @@ public class ModelFeaturePipeline {
         if (mc.isProperty("prefix")) {
             int[] ngrams = NGramsUtil.fromString(mc.getProperty("prefix_sizes"));
             for (int ngram : ngrams) {
-                pipe.add(new TokenTextCharSuffix(ngram + "PREFIX=", ngram));
+                pipe.add(new TokenTextCharPrefix(ngram + "PREFIX=", ngram));
             }
 
         }
