@@ -113,11 +113,11 @@ public class ModelFeaturePipeline {
                 break;
             case WINDOW:
 //                pipe.add(new FeaturesInWindow("WINDOW=", -3, 3));
-                pipe.add(new FeaturesInWindow("WINDOW=", -1, 0, Pattern.compile("[WORD|LEMMA|POS|CHUNK]=.*"), true));
-                pipe.add(new FeaturesInWindow("WINDOW=", -2, -1, Pattern.compile("[WORD|LEMMA|POS|CHUNK]=.*"), true));
-                pipe.add(new FeaturesInWindow("WINDOW=", 0, 1, Pattern.compile("[WORD|LEMMA|POS|CHUNK]=.*"), true));
-                pipe.add(new FeaturesInWindow("WINDOW=", -1, 1, Pattern.compile("[WORD|LEMMA|POS|CHUNK]=.*"), true));
-                pipe.add(new FeaturesInWindow("WINDOW=", -3, -1, Pattern.compile("[WORD|LEMMA|POS|CHUNK]=.*"), true));
+                pipe.add(new FeaturesInWindow("WINDOW=", -1, 0, Pattern.compile("(WORD|LEMMA|POS|CHUNK)=.*"), true));
+                pipe.add(new FeaturesInWindow("WINDOW=", -2, -1, Pattern.compile("(WORD|LEMMA|POS|CHUNK)=.*"), true));
+                pipe.add(new FeaturesInWindow("WINDOW=", 0, 1, Pattern.compile("(WORD|LEMMA|POS|CHUNK)=.*"), true));
+                pipe.add(new FeaturesInWindow("WINDOW=", -1, 1, Pattern.compile("(WORD|LEMMA|POS|CHUNK)=.*"), true));
+                pipe.add(new FeaturesInWindow("WINDOW=", -3, -1, Pattern.compile("(WORD|LEMMA|POS|CHUNK)=.*"), true));
 
                 break;
             case CONJUNCTIONS:
