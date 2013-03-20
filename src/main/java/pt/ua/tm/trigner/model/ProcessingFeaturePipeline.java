@@ -82,6 +82,15 @@ public class ProcessingFeaturePipeline {
             }
         }
 
+        // Dependency window
+        ModelConfiguration.ContextType context = ModelConfiguration.ContextType.valueOf(mc.getProperty("context"));
+        if (context.equals(ModelConfiguration.ContextType.DEPENDENCY_WINDOW)) {
+            int maxHop = 3;
+            p.add(new DependencyWindow("DEPENDENCY_WINDOW",
+                    new FeatureType[]{FeatureType.LEMMA, FeatureType.POS, FeatureType.CHUNK},
+                    maxHop));
+        }
+
         // Shortest Path features
         if (mc.isProperty("sp_distance")) {
             p.add(new SPEdgeDistance("SP_EDGE_DISTANCE"));

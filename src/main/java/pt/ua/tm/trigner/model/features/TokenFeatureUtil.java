@@ -21,7 +21,7 @@ public class TokenFeatureUtil {
                 return token.getFeature("POS").get(0);
             case CHUNK:
                 Chunk chunk = token.getSentence().getChunks().getTokenChunk(token);
-                return chunk.toString();
+                return chunk.getTag().toString();
             default:
                 return null;
         }

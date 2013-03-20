@@ -15,19 +15,15 @@ import java.util.Properties;
 public class OptimizationConfiguration extends Properties {
     public static final FeatureType[] features = new FeatureType[]{FeatureType.LEMMA, FeatureType.WORD, FeatureType.POS, FeatureType.CHUNK};
     public static final int[] orders = new int[]{1, 2, 3};
-    public static final ContextType[] contexts = new ContextType[]{ContextType.NONE, ContextType.WINDOW, ContextType.CONJUNCTIONS};
+    public static final ContextType[] contexts = new ContextType[]{ContextType.NONE, ContextType.WINDOW, ContextType.DEPENDENCY_WINDOW, ContextType.CONJUNCTIONS};
     public static final int[][] ngrams = new int[][]{
             {2, 3, 4},
             {2, 3},
             {3, 4}
     };
     public static final int[][] hops = new int[][]{
-            {1, 2, 3},
-            {1},
             {2},
-            {3},
-            {1, 2},
-            {2, 3}
+            {3}
     };
 
 }

@@ -116,6 +116,7 @@ public class ModelConfiguration extends Properties {
     public static enum ContextType {
         NONE,
         WINDOW,
-        CONJUNCTIONS
+        CONJUNCTIONS,
+        DEPENDENCY_WINDOW
     }
 }

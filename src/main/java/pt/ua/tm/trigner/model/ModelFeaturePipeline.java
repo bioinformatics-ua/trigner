@@ -125,6 +125,8 @@ public class ModelFeaturePipeline {
                 pipe.add(new OffsetConjunctions(true, Pattern.compile("LEMMA=.*"), new int[][]{{-1, 0}, {-2, -1}, {0, 1}, {-1, 1}, {-3, -1}}));
                 pipe.add(new OffsetConjunctions(true, Pattern.compile("POS=.*"), new int[][]{{-1, 0}, {-2, -1}, {0, 1}, {-1, 1}, {-3, -1}}));
                 break;
+            case DEPENDENCY_WINDOW:
+                break;
         }
 
         // Print
