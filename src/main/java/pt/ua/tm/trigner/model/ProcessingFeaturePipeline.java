@@ -30,10 +30,10 @@ public class ProcessingFeaturePipeline {
         }
 
         // Concepts
-        if (mc.isProperty("concepts_tags")) {
+        if (mc.isProperty("concept_tags")) {
             p.add(new ConceptTags());
         }
-        if (mc.isProperty("concepts_counting")) {
+        if (mc.isProperty("concept_counting")) {
             p.add(new ConceptCounting());
         }
 

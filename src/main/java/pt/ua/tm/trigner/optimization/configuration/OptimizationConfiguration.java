@@ -1,4 +1,4 @@
-package pt.ua.tm.trigner.model.configuration;
+package pt.ua.tm.trigner.optimization.configuration;
 
 import pt.ua.tm.trigner.model.configuration.ModelConfiguration.ContextType;
 import pt.ua.tm.trigner.model.features.FeatureType;

@@ -112,7 +112,13 @@ public class ModelFeaturePipeline {
             case NONE:
                 break;
             case WINDOW:
-                pipe.add(new FeaturesInWindow("WINDOW=", -3, 3));
+//                pipe.add(new FeaturesInWindow("WINDOW=", -3, 3));
+                pipe.add(new FeaturesInWindow("WINDOW=", -1, 0, Pattern.compile("[WORD|LEMMA|POS|CHUNK]=.*"), true));
+                pipe.add(new FeaturesInWindow("WINDOW=", -2, -1, Pattern.compile("[WORD|LEMMA|POS|CHUNK]=.*"), true));
+                pipe.add(new FeaturesInWindow("WINDOW=", 0, 1, Pattern.compile("[WORD|LEMMA|POS|CHUNK]=.*"), true));
+                pipe.add(new FeaturesInWindow("WINDOW=", -1, 1, Pattern.compile("[WORD|LEMMA|POS|CHUNK]=.*"), true));
+                pipe.add(new FeaturesInWindow("WINDOW=", -3, -1, Pattern.compile("[WORD|LEMMA|POS|CHUNK]=.*"), true));
+
                 break;
             case CONJUNCTIONS:
                 pipe.add(new OffsetConjunctions(true, Pattern.compile("WORD=.*"), new int[][]{{-1, 0}, {-2, -1}, {0, 1}, {-1, 1}, {-3, -1}}));

@@ -1,9 +1,10 @@
-package pt.ua.tm.trigner.model;
+package pt.ua.tm.trigner.optimization;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import pt.ua.tm.gimli.exception.GimliException;
 import pt.ua.tm.trigner.documents.Documents;
+import pt.ua.tm.trigner.model.Model;
 import pt.ua.tm.trigner.model.configuration.ModelConfiguration;
 
 import java.io.*;
@@ -22,12 +23,18 @@ public class Main {
     private static Logger logger = LoggerFactory.getLogger(Main.class);
 
     public static void main(String... args) {
+
+        boolean verbose = false;
+        if (args.length > 0){
+            if (args[0].equals("-v")){
+                verbose = true;
+            }
+        }
+
         String trainDocumentsFilePath = "resources/corpus/bionlp2009/train/documents.gz";
 //        String devDocumentsFilePath = "resources/corpus/bion lp2009/dev/documents.gz";
         String outputFolder = "resources/models/bionlp2009/";
 
-
-        boolean verbose = false;
 
         // Disable output from Mallet and GDepTranslator
         if (!verbose) {
@@ -53,11 +60,15 @@ public class Main {
             return;
         }
 
-        Documents[] docs = documents.splitInOrder(new double[]{0.85, 0.15});
+        Documents[] docs = documents.splitInOrder(new double[]{0.8, 0.2});
 
 
         trainDocuments = docs[0];
         devDocuments = docs[1];
+
+
+        logger.info("Train size: {}", trainDocuments.size());
+        logger.info("Dev size: {}", devDocuments.size());
 
         // Add pre-processing features
 //        Features.add(new Documents[]{trainDocuments, devDocuments});

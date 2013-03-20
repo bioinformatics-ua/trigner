@@ -1,4 +1,4 @@
-package pt.ua.tm.trigner.model;
+package pt.ua.tm.trigner.optimization;
 
 import cc.mallet.pipe.Pipe;
 import cc.mallet.types.InstanceList;
@@ -10,12 +10,15 @@ import pt.ua.tm.trigner.configuration.Configuration;
 import pt.ua.tm.trigner.documents.Documents;
 import pt.ua.tm.trigner.evaluation.Evaluator;
 import pt.ua.tm.trigner.input.DocumentsLoader;
+import pt.ua.tm.trigner.model.Documents2InstancesConverter;
+import pt.ua.tm.trigner.model.Model;
+import pt.ua.tm.trigner.model.ModelFeaturePipeline;
+import pt.ua.tm.trigner.model.ProcessingFeaturePipeline;
 import pt.ua.tm.trigner.model.configuration.ModelConfiguration;
 import pt.ua.tm.trigner.model.configuration.ModelConfiguration.ContextType;
-import pt.ua.tm.trigner.model.configuration.OptimizationConfiguration;
 import pt.ua.tm.trigner.model.features.FeatureType;
+import pt.ua.tm.trigner.optimization.configuration.OptimizationConfiguration;
 
-import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.HashMap;
@@ -133,28 +136,34 @@ public class Optimization {
 
             // Optimize contexts
             ContextType bestContext = ContextType.NONE;
-            for (int i = 1; i < OptimizationConfiguration.contexts.length; i++) {
-                context = OptimizationConfiguration.contexts[i];
-                logger.info("CONTEXT: {}", context);
 
-                for (int order : OptimizationConfiguration.orders) {
-                    // Get model performance
-                    Tuple<Evaluator, Boolean> tuple = getModelPerformance(trainDocuments, devDocuments, label, dictionaryPath,
-                            models, bestF1,
-                            b, f, g, h, context, order);
+            // Continue if it is possible to build windows and conjunctions
+            if (b[getFeatureIndex(Features.Token)] || b[getFeatureIndex(Features.Lemma)] ||
+                    b[getFeatureIndex(Features.POS)] || b[getFeatureIndex(Features.Chunk)]) {
 
-                    // Set best F1
-                    Evaluator evaluator = tuple.getA();
-                    boolean thereWasABetterModel = tuple.getB();
-                    bestF1 = thereWasABetterModel ? evaluator.getF1() : bestF1;
-                    // Set best context
-                    bestContext = thereWasABetterModel ? context : bestContext;
-                    bestOrder = thereWasABetterModel ? order : bestOrder;
+                for (int i = 1; i < OptimizationConfiguration.contexts.length; i++) {
+                    context = OptimizationConfiguration.contexts[i];
+                    logger.info("CONTEXT: {}", context);
+
+                    for (int order : OptimizationConfiguration.orders) {
+                        // Get model performance
+                        Tuple<Evaluator, Boolean> tuple = getModelPerformance(trainDocuments, devDocuments, label, dictionaryPath,
+                                models, bestF1,
+                                b, f, g, h, context, order);
+
+                        // Set best F1
+                        Evaluator evaluator = tuple.getA();
+                        boolean thereWasABetterModel = tuple.getB();
+                        bestF1 = thereWasABetterModel ? evaluator.getF1() : bestF1;
+                        // Set best context
+                        bestContext = thereWasABetterModel ? context : bestContext;
+                        bestOrder = thereWasABetterModel ? order : bestOrder;
+                    }
+
+
                 }
-
-
+                context = bestContext;
             }
-            context = bestContext;
 
 
             // Optimize feature type for vertex
@@ -222,25 +231,29 @@ public class Optimization {
 
 
             // Optimize dependency hops
-            int[] bestHops = h;
-            for (int i = 1; i < OptimizationConfiguration.hops.length; i++) {
-                h = OptimizationConfiguration.hops[i];
+            if (b[getFeatureIndex(Features.DPEdge)] || b[getFeatureIndex(Features.DPNGramsEdge)] ||
+                    b[getFeatureIndex(Features.DPNGramsVertex)] || b[getFeatureIndex(Features.DPVertex)]
+                    || b[getFeatureIndex(Features.DPVertexEdge)]) {
 
-                logger.info("HOPS: {}", h);
+                int[] bestHops = h;
+                for (int i = 1; i < OptimizationConfiguration.hops.length; i++) {
+                    h = OptimizationConfiguration.hops[i];
 
-                // Get model performance
-                Tuple<Evaluator, Boolean> tuple = getModelPerformance(trainDocuments, devDocuments, label, dictionaryPath,
-                        models, bestF1,
-                        b, f, g, h, context, bestOrder);
+                    logger.info("HOPS: {}", h);
 
-                // Set best F1
-                Evaluator evaluator = tuple.getA();
-                boolean thereWasABetterModel = tuple.getB();
-                bestF1 = thereWasABetterModel ? evaluator.getF1() : bestF1;
-                bestHops = thereWasABetterModel ? h : bestHops;
+                    // Get model performance
+                    Tuple<Evaluator, Boolean> tuple = getModelPerformance(trainDocuments, devDocuments, label, dictionaryPath,
+                            models, bestF1,
+                            b, f, g, h, context, bestOrder);
+
+                    // Set best F1
+                    Evaluator evaluator = tuple.getA();
+                    boolean thereWasABetterModel = tuple.getB();
+                    bestF1 = thereWasABetterModel ? evaluator.getF1() : bestF1;
+                    bestHops = thereWasABetterModel ? h : bestHops;
+                }
+                h = bestHops;
             }
-            h = bestHops;
-
         }
         return models;
     }
@@ -260,11 +273,11 @@ public class Optimization {
         // Get Model Configuration
         ModelConfiguration modelConfiguration = getModelConfiguration(b, f, g, h, context, order);
 
-        try {
-            modelConfiguration.store(new FileWriter("/Users/david/Downloads/tmp.config"), "");
-        } catch (IOException e) {
-            throw new RuntimeException("There was a problem storing the model configuration.", e);
-        }
+//        try {
+//            modelConfiguration.store(new FileWriter("/Users/david/Downloads/tmp.config"), "");
+//        } catch (IOException e) {
+//            throw new RuntimeException("There was a problem storing the model configuration.", e);
+//        }
 
         // Model
         Model model = new Model(modelConfiguration);
@@ -339,8 +352,8 @@ public class Optimization {
         Prefix,
         WordShape,
 
-        ConceptsTags,
-        ConceptsCounting,
+        ConceptTags,
+        ConceptCounting,
 
         Triggers,
 
