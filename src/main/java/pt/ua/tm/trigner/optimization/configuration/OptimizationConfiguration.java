@@ -25,9 +25,12 @@ public class OptimizationConfiguration extends Properties {
             {2, 3, 4}
     };
     public static final int[][] hops = new int[][]{
+            {1},
             {2},
             {3},
-            {2, 3}
+            {1, 2},
+            {2, 3},
+            {1, 2, 3},
     };
 
 }
