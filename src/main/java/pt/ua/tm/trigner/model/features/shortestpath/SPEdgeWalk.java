@@ -8,6 +8,7 @@ import pt.ua.tm.gimli.corpus.Token;
 import pt.ua.tm.gimli.corpus.dependency.DependencyTag;
 import pt.ua.tm.gimli.corpus.dependency.LabeledEdge;
 import pt.ua.tm.gimli.features.corpus.pipeline.FeatureExtractor;
+import pt.ua.tm.trigner.util.ShortestPathUtil;
 
 /**
  * Created with IntelliJ IDEA.
@@ -32,6 +33,7 @@ public class SPEdgeWalk implements FeatureExtractor {
             Tuple<AnnotationID, Integer> closest = ShortestPathUtil.getClosestConcept(sentence, token);
 
             if (closest == null) {
+                token.putFeature(prefix, "NULL");
                 continue;
             }
 
@@ -39,7 +41,10 @@ public class SPEdgeWalk implements FeatureExtractor {
 
             DijkstraShortestPath path = new DijkstraShortestPath(sentence.getDependencyGraph(), token, closestToken);
 
+
+
             if (path != null && path.getPathEdgeList() != null) {
+
                 // Edge walk
                 StringBuilder sb = new StringBuilder();
                 for (Object obj : path.getPathEdgeList()) {

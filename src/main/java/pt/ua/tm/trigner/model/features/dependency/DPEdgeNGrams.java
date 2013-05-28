@@ -6,7 +6,7 @@ import pt.ua.tm.gimli.corpus.Sentence;
 import pt.ua.tm.gimli.corpus.Token;
 import pt.ua.tm.gimli.corpus.dependency.LabeledEdge;
 import pt.ua.tm.gimli.features.corpus.pipeline.FeatureExtractor;
-import pt.ua.tm.trigner.model.features.NGramsUtil;
+import pt.ua.tm.trigner.util.NGramsUtil;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -33,9 +33,10 @@ public class DPEdgeNGrams implements FeatureExtractor {
     @Override
     public void extract(Sentence sentence) {
         Graph graph = sentence.getDependencyGraph();
+//        List<String> finalNGrams = new ArrayList<>();
         for (Token token1 : sentence) {
             BellmanFordShortestPath<Token, LabeledEdge> bellman =
-                    new BellmanFordShortestPath<Token, LabeledEdge>(graph, token1, maxHops);
+                    new BellmanFordShortestPath<Token, LabeledEdge>(graph, token1, maxHops+1);
 
             for (Token token2 : sentence) {
                 if (token1.equals(token2)) {
@@ -58,6 +59,7 @@ public class DPEdgeNGrams implements FeatureExtractor {
 
 
                 // Add n-grams
+//                Collections.sort(features);
                 for (String ngram : NGramsUtil.getNGrams(features, n, '_')) {
                     token1.putFeature(prefix, ngram);
                 }

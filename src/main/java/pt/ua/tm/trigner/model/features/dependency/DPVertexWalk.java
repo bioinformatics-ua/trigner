@@ -6,8 +6,9 @@ import pt.ua.tm.gimli.corpus.Sentence;
 import pt.ua.tm.gimli.corpus.Token;
 import pt.ua.tm.gimli.corpus.dependency.LabeledEdge;
 import pt.ua.tm.gimli.features.corpus.pipeline.FeatureExtractor;
-import pt.ua.tm.trigner.model.features.FeatureType;
-import pt.ua.tm.trigner.model.features.TokenFeatureUtil;
+import pt.ua.tm.trigner.shared.Types;
+import pt.ua.tm.trigner.shared.Types.VertexFeatureType;
+import pt.ua.tm.trigner.util.TokenFeatureUtil;
 
 import java.util.List;
 
@@ -22,9 +23,9 @@ public class DPVertexWalk implements FeatureExtractor {
 
     private int maxHops;
     private String prefix;
-    private FeatureType feature;
+    private Types.VertexFeatureType feature;
 
-    public DPVertexWalk(final String prefix, final FeatureType feature, final int maxHops) {
+    public DPVertexWalk(final String prefix, final Types.VertexFeatureType feature, final int maxHops) {
         this.prefix = prefix;
         this.maxHops = maxHops;
         this.feature = feature;

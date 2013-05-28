@@ -2,7 +2,7 @@ package pt.ua.tm.trigner.model.pipe;
 
 import cc.mallet.pipe.Pipe;
 import cc.mallet.types.*;
-import pt.ua.tm.trigner.model.configuration.ModelConfiguration;
+import pt.ua.tm.trigner.configuration.ModelConfiguration;
 
 import java.util.ArrayList;
 
@@ -58,13 +58,13 @@ public class Input2TokenSequence extends Pipe {
 
                 boolean addFeature = true;
 
-                if (!mc.isProperty("token") && key.equals("WORD")) {
+                if (!mc.isProperty("Token") && key.equals("WORD")) {
                     addFeature = false;
                 }
-                if (!mc.isProperty("lemma") && key.equals("LEMMA")) {
+                if (!mc.isProperty("Lemma") && key.equals("LEMMA")) {
                     addFeature = false;
                 }
-                if (!mc.isProperty("pos") && key.equals("POS")) {
+                if (!mc.isProperty("POS") && key.equals("POS")) {
                     addFeature = false;
                 }
 

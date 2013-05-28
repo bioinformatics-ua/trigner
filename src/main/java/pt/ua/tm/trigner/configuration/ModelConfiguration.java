@@ -1,10 +1,9 @@
 package pt.ua.tm.trigner.configuration;
 
 import org.apache.commons.lang3.ArrayUtils;
-import pt.ua.tm.trigner.configuration.Global;
-import pt.ua.tm.trigner.model.configuration.Types;
+import pt.ua.tm.trigner.global.Global;
+import pt.ua.tm.trigner.shared.Types;
 import pt.ua.tm.trigner.shared.CustomHashSet;
-import pt.ua.tm.trigner.util.FeatureType;
 
 import java.util.Map;
 import java.util.Properties;
@@ -25,7 +24,7 @@ public class ModelConfiguration extends Properties {
     }
 
     public ModelConfiguration(Map<Types.Feature, Boolean> features, Map<Types.NGrams, int[]> ngrams,
-                              Map<Types.VertexType, Set<FeatureType>> vertexTypes,
+                              Map<Types.VertexType, Set<Types.VertexFeatureType>> vertexTypes,
                               Map<Types.HopsLength, Set<Integer>> hopsLength,
                               Set<ContextType> contexts, final int order) {
         super();
@@ -44,7 +43,7 @@ public class ModelConfiguration extends Properties {
         }
         for (Types.VertexType vertexType : Types.VertexType.values()) {
             if (!vertexTypes.containsKey(vertexType)) {
-                Set<FeatureType> set = new CustomHashSet<>();
+                Set<Types.VertexFeatureType> set = new CustomHashSet<>();
 
                 set.add(Global.optimizationConfiguration.getVertex().get(0));
 //                set.add(OptimizationConfiguration.features[0]);
@@ -78,7 +77,7 @@ public class ModelConfiguration extends Properties {
 
         // Vertex types
         for (Types.VertexType vertexType : vertexTypes.keySet()) {
-            CustomHashSet<FeatureType> set = (CustomHashSet<FeatureType>) vertexTypes.get(vertexType);
+            CustomHashSet<Types.VertexFeatureType> set = (CustomHashSet<Types.VertexFeatureType>) vertexTypes.get(vertexType);
 //            setProperty(vertexType.toString(), vertexTypes.get(vertexType).toString());
             setProperty(vertexType.toString(), set.toString());
         }

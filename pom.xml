@@ -9,7 +9,7 @@
     <version>1.0-SNAPSHOT</version>
 
     <!--
-    Project developers and organization
+    Annotate developers and organization
     -->
     <developers>
         <developer>
@@ -67,7 +67,7 @@
     </pluginRepositories>
 
     <!--
-    Project properties (can be reused anywhere in the pom like this: ${prop.name})
+    Annotate properties (can be reused anywhere in the pom like this: ${prop.name})
     -->
     <properties>
         <!-- Java version we use and depend on -->
@@ -84,11 +84,11 @@
 
         <targetJdk>1.7</targetJdk>
 
-        <!--<mainClass>pt.ua.tm.neji.cli.Main</mainClass>-->
+        <!--<mainClass>pt.ua.tm.neji.cli.Convert</mainClass>-->
     </properties>
 
     <!--
-    Project build configuration
+    Annotate build configuration
     -->
     <build>
         <plugins>

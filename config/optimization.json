@@ -1,0 +1,69 @@
+{
+  "features": [
+    "Token",
+    "Lemma",
+    "POS",
+    "Chunk",
+    "Capitalization",
+    "Counting",
+    "Symbols",
+    "CharNGrams",
+    "Suffix",
+    "Prefix",
+    "WordShape",
+    "ConceptTags",
+    "ConceptCounting",
+    "ConceptHeads",
+    "ConceptNames",
+    "SentenceTokensCounting",
+    "Triggers",
+    "DPModifiers",
+    "DPInOutDependencies",
+    "DPEdge",
+    "DPEdgeType",
+    "DPNGramsVertex",
+    "DPNGramsEdge",
+    "SPDistance",
+    "SPChunkDistance",
+    "SPVertex",
+    "SPEdge",
+    "SPEdgeType",
+    "SPNGramsVertex",
+    "SPNGramsEdge"
+  ],
+  "contexts": [
+    "NONE",
+    "WINDOW",
+    "DEPENDENCY_WINDOW"
+  ],
+  "ngrams": [
+    [
+      2,
+      3,
+      4
+    ],
+    [
+      2,
+      3
+    ],
+    [
+      3,
+      4
+    ]
+  ],
+  "hops": [
+    3,
+    2
+  ],
+  "vertex": [
+    "LEMMA",
+    "WORD",
+    "POS",
+    "CHUNK"
+  ],
+  "orders": [
+    1,
+    2,
+    3
+  ]
+}

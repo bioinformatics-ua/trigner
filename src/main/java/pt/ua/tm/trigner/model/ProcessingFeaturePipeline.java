@@ -1,16 +1,23 @@
 package pt.ua.tm.trigner.model;
 
-import pt.ua.tm.gimli.features.corpus.ChunkTags;
-import pt.ua.tm.gimli.features.corpus.DependencyNER;
+import pt.ua.tm.gimli.features.corpus.ChunkBIOTags;
 import pt.ua.tm.gimli.features.corpus.pipeline.PipelineFeatureExtractor;
-import pt.ua.tm.trigner.model.configuration.ModelConfiguration;
-import pt.ua.tm.trigner.model.features.ConceptCounting;
-import pt.ua.tm.trigner.model.features.ConceptTags;
-import pt.ua.tm.trigner.model.features.FeatureType;
-import pt.ua.tm.trigner.model.features.NGramsUtil;
+import pt.ua.tm.trigner.configuration.ModelConfiguration;
+import pt.ua.tm.trigner.model.features.concept.ConceptCounting;
+import pt.ua.tm.trigner.model.features.concept.ConceptHeads;
+import pt.ua.tm.trigner.model.features.concept.ConceptNames;
+import pt.ua.tm.trigner.model.features.concept.ConceptTags;
 import pt.ua.tm.trigner.model.features.dependency.*;
 import pt.ua.tm.trigner.model.features.pipeline.DocumentsPipelineFeatureExtractor;
+import pt.ua.tm.trigner.model.features.sentence.SentenceTokensCounting;
 import pt.ua.tm.trigner.model.features.shortestpath.*;
+import pt.ua.tm.trigner.model.transformer.ContextTransformer;
+import pt.ua.tm.trigner.model.transformer.FeatureTransformer;
+import pt.ua.tm.trigner.model.transformer.IntegerTransformer;
+import pt.ua.tm.trigner.shared.CustomHashSet;
+import pt.ua.tm.trigner.shared.Types;
+
+import java.util.Set;
 
 /**
  * Created with IntelliJ IDEA.
@@ -22,102 +29,145 @@ import pt.ua.tm.trigner.model.features.shortestpath.*;
 public class ProcessingFeaturePipeline {
     public static PipelineFeatureExtractor get(final ModelConfiguration mc) {
         PipelineFeatureExtractor p = new DocumentsPipelineFeatureExtractor();
-        FeatureType ft;
 
         // Chunk
-        if (mc.isProperty("chunk")) {
-            p.add(new ChunkTags("CHUNK"));
+        if (mc.isProperty("Chunk")) {
+            p.add(new ChunkBIOTags("Chunk"));
         }
 
         // Concepts
-        if (mc.isProperty("concept_tags")) {
-            p.add(new ConceptTags());
+        if (mc.isProperty("ConceptTags")) {
+            p.add(new ConceptTags("ConceptTags"));
         }
-        if (mc.isProperty("concept_counting")) {
+        if (mc.isProperty("ConceptCounting")) {
             p.add(new ConceptCounting());
         }
-
-        // Dependency Features
-        if (mc.isProperty("dp_modifiers")) {
-            p.add(new DependencyNER());
+        if (mc.isProperty("ConceptHeads")) {
+            p.add(new ConceptHeads("ConceptHead"));
+        }
+        if (mc.isProperty("ConceptNames")) {
+            p.add(new ConceptNames("ConceptNames"));
         }
 
-        int[] hops = NGramsUtil.fromString(mc.getProperty("dp_hops"));
-
-        if (mc.isProperty("dp_vertex")) {
-            ft = FeatureType.valueOf(mc.getProperty("dp_vertex_feature"));
-            for (int hop : hops) {
-                p.add(new DPVertexWalk("DP_VERTEX_WALK", ft, hop));
-            }
-
+        // Sentence
+        if (mc.isProperty("SentenceTokensCounting")) {
+            p.add(new SentenceTokensCounting("SentenceTokensCounting"));
         }
-        if (mc.isProperty("dp_edge")) {
-            for (int hop : hops) {
-                p.add(new DPEdgeWalk("DP_EDGE_WALK", hop));
-            }
+
+        // Dependency Feature
+        if (mc.isProperty("DPModifiers")) {
+            p.add(new DPModifiers("DPModifiers"));
         }
-        if (mc.isProperty("dp_vertex_edge")) {
-            ft = FeatureType.valueOf(mc.getProperty("dp_vertex_edge_feature"));
-            for (int hop : hops) {
-                p.add(new DPVertexEdgeWalk("DP_VERTEX_EDGE_WALK", ft, hop));
+        if (mc.isProperty("DPInOutDependencies")) {
+            Set<Integer> setHops = new CustomHashSet<>(mc.getProperty("DPInOutDependencies_length"), new IntegerTransformer());
+            for (Integer hop : setHops) {
+                String featureName = "DPInOutDependencies_" + hop;
+                p.add(new DPInOutDependencies(featureName, hop));
             }
         }
 
-        int[] ngrams = NGramsUtil.fromString(mc.getProperty("dp_ngrams"));
+        if (mc.isProperty("DPVertex")) {
+            Set<Integer> setHops = new CustomHashSet<>(mc.getProperty("DPVertex_length"), new IntegerTransformer());
+            Set<Types.VertexFeatureType> setFeatures = new CustomHashSet<>(mc.getProperty("DPVertex_type"), new FeatureTransformer());
 
-        if (mc.isProperty("dp_ngrams_vertex")) {
-            ft = FeatureType.valueOf(mc.getProperty("dp_ngrams_vertex_feature"));
-            for (int hop : hops) {
-                for (int ngram : ngrams) {
-                    p.add(new DPVertexNGrams("DP_VERTEX_" + ngram + "GRAMS", ft, hop, ngram));
+            for (Integer hop : setHops) {
+                for (Types.VertexFeatureType feature : setFeatures) {
+                    String featureName = "DPVertex_" + hop + "_" + feature;
+                    p.add(new DPVertexWalk(featureName, feature, hop));
                 }
             }
         }
-        if (mc.isProperty("dp_ngrams_edge")) {
-            p.add(new DPEdgeNGrams("DP_EDGE_3GRAMS", 3, 3));
-            for (int hop : hops) {
-                for (int ngram : ngrams) {
-                    p.add(new DPEdgeNGrams("DP_EDGE_" + ngram + "GRAMS", hop, ngram));
+        if (mc.isProperty("DPEdge")) {
+            Set<Integer> setHops = new CustomHashSet<>(mc.getProperty("DPEdge_length"), new IntegerTransformer());
+            for (Integer hop : setHops) {
+                String featureName = "DPEdge_" + hop;
+                p.add(new DPEdgeWalk(featureName, hop));
+            }
+        }
+        if (mc.isProperty("DPEdgeType")) {
+            Set<Integer> setHops = new CustomHashSet<>(mc.getProperty("DPEdge_length"), new IntegerTransformer());
+            for (Integer hop : setHops) {
+                String featureName = "DPEdgeType_" + hop;
+                p.add(new DPEdgeWalkType(featureName, hop));
+            }
+        }
+
+        if (mc.isProperty("DPNGramsVertex")) {
+            Set<Integer> setHops = new CustomHashSet<>(mc.getProperty("DPNGramsVertex_length"), new IntegerTransformer());
+            Set<Types.VertexFeatureType> setFeatures = new CustomHashSet<>(mc.getProperty("DPNGramsVertex_type"), new FeatureTransformer());
+            Set<Integer> setGrams = new CustomHashSet<>(mc.getProperty("DPNGramsVertex_sizes"), new IntegerTransformer());
+
+            for (Integer hop : setHops) {
+                for (Types.VertexFeatureType feature : setFeatures) {
+                    for (Integer ngram : setGrams) {
+                        String featureName = "DPNGramsVertex_" + hop + "_" + feature + "_" + ngram + "GRAMS";
+                        p.add(new DPVertexNGrams(featureName, feature, hop, ngram));
+                    }
                 }
+            }
+        }
+        if (mc.isProperty("DPNGramsEdge")) {
+            Set<Integer> setHops = new CustomHashSet<>(mc.getProperty("DPNGramsEdge_length"), new IntegerTransformer());
+            Set<Integer> setGrams = new CustomHashSet<>(mc.getProperty("DPNGramsEdge_sizes"), new IntegerTransformer());
+
+            for (Integer hop : setHops) {
+                for (Integer ngram : setGrams) {
+                    String featureName = "DPNGramsEdge_" + hop + "_" + ngram + "GRAMS";
+                    p.add(new DPEdgeNGrams(featureName, hop, ngram));
+                }
+            }
+        }
+
+        // Shortest Path features
+        if (mc.isProperty("SPDistance")) {
+            p.add(new SPEdgeDistance("SPDistance"));
+        }
+        if (mc.isProperty("SPChunkDistance")) {
+            p.add(new SPChunkDistance("SPChunkDistance"));
+        }
+        if (mc.isProperty("SPVertex")) {
+            Set<Types.VertexFeatureType> setFeatures = new CustomHashSet<>(mc.getProperty("SPVertex_type"), new FeatureTransformer());
+            for (Types.VertexFeatureType feature : setFeatures) {
+                String featureName = "SPVertex_" + feature;
+                p.add(new SPVertexWalk(featureName, feature));
+            }
+        }
+        if (mc.isProperty("SPEdge")) {
+            p.add(new SPEdgeWalk("SPEdge"));
+        }
+        if (mc.isProperty("SPEdgeType")) {
+            p.add(new SPEdgeWalkType("SPEdgeType"));
+        }
+
+        if (mc.isProperty("SPNGramsVertex")) {
+            Set<Types.VertexFeatureType> setFeatures = new CustomHashSet<>(mc.getProperty("SPNGramsVertex_type"), new FeatureTransformer());
+            Set<Integer> setGrams = new CustomHashSet<>(mc.getProperty("SPNGramsVertex_sizes"), new IntegerTransformer());
+            for (Types.VertexFeatureType feature : setFeatures) {
+                for (Integer ngram : setGrams) {
+                    String featureName = "SPNGramsVertex_" + feature + "_" + ngram + "GRAMS";
+                    p.add(new SPVertexNGrams(featureName, feature, ngram));
+                }
+            }
+        }
+
+        if (mc.isProperty("SPNGramsEdge")) {
+            Set<Integer> setGrams = new CustomHashSet<>(mc.getProperty("SPNGramsEdge_sizes"), new IntegerTransformer());
+            for (Integer ngram : setGrams) {
+                String featureName = "SPNGramsEdge_" + ngram + "GRAMS";
+                p.add(new SPEdgeNGrams(featureName, ngram));
             }
         }
 
         // Dependency window
-        ModelConfiguration.ContextType context = ModelConfiguration.ContextType.valueOf(mc.getProperty("context"));
-        if (context.equals(ModelConfiguration.ContextType.DEPENDENCY_WINDOW)) {
+        Set<ModelConfiguration.ContextType> contexts = new CustomHashSet<>(mc.getProperty("context"), new ContextTransformer());
+//        ModelConfiguration.ContextType context = ModelConfiguration.ContextType.valueOf(mc.getProperty("context"));
+        if (contexts.contains(ModelConfiguration.ContextType.DEPENDENCY_WINDOW)) {
             int maxHop = 3;
             p.add(new DependencyWindow("DEPENDENCY_WINDOW",
-                    new FeatureType[]{FeatureType.LEMMA, FeatureType.POS, FeatureType.CHUNK},
+                    new Types.VertexFeatureType[]{Types.VertexFeatureType.LEMMA, Types.VertexFeatureType.POS, Types.VertexFeatureType.CHUNK},
                     maxHop));
-        }
-
-        // Shortest Path features
-        if (mc.isProperty("sp_distance")) {
-            p.add(new SPEdgeDistance("SP_EDGE_DISTANCE"));
-        }
-        if (mc.isProperty("sp_vertex")) {
-            ft = FeatureType.valueOf(mc.getProperty("sp_vertex_feature"));
-            p.add(new SPVertexWalk("SP_VERTEX_WALK", ft));
-        }
-        if (mc.isProperty("sp_edge")) {
-            p.add(new SPEdgeWalk("SP_EDGE_WALK"));
-        }
-        if (mc.isProperty("sp_vertex_edge")) {
-            ft = FeatureType.valueOf(mc.getProperty("sp_vertex_edge_feature"));
-            p.add(new SPVertexEdgeWalk("SP_VERTEX_EDGE_WALK", ft));
-        }
-
-        ngrams = NGramsUtil.fromString(mc.getProperty("sp_ngrams"));
-        if (mc.isProperty("sp_ngrams_vertex")) {
-            ft = FeatureType.valueOf(mc.getProperty("sp_ngrams_vertex_feature"));
-            for (int ngram : ngrams) {
-                p.add(new SPVertexNGrams("SP_VERTEX_" + ngram + "GRAMS", ft, ngram));
-            }
-        }
-        if (mc.isProperty("sp_ngrams_edge")) {
-            for (int ngram : ngrams) {
-                p.add(new SPEdgeNGrams("SP_EDGE_" + ngram + "GRAMS", ngram));
-            }
+            p.add(new DependencyWindowExtra("DEPENDENCY_WINDOW",
+                    maxHop));
         }
 
         return p;

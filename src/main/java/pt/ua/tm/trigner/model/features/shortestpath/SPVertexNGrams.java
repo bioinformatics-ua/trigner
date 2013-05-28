@@ -8,9 +8,11 @@ import pt.ua.tm.gimli.corpus.Token;
 import pt.ua.tm.gimli.corpus.dependency.DependencyTag;
 import pt.ua.tm.gimli.corpus.dependency.LabeledEdge;
 import pt.ua.tm.gimli.features.corpus.pipeline.FeatureExtractor;
-import pt.ua.tm.trigner.model.features.FeatureType;
-import pt.ua.tm.trigner.model.features.NGramsUtil;
-import pt.ua.tm.trigner.model.features.TokenFeatureUtil;
+import pt.ua.tm.trigner.shared.Types;
+import pt.ua.tm.trigner.shared.Types.VertexFeatureType;
+import pt.ua.tm.trigner.util.NGramsUtil;
+import pt.ua.tm.trigner.util.ShortestPathUtil;
+import pt.ua.tm.trigner.util.TokenFeatureUtil;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -25,10 +27,10 @@ import java.util.List;
 public class SPVertexNGrams implements FeatureExtractor {
 
     private String prefix;
-    private FeatureType feature;
+    private Types.VertexFeatureType feature;
     private int n;
 
-    public SPVertexNGrams(final String prefix, final FeatureType feature, final int n) {
+    public SPVertexNGrams(final String prefix, final Types.VertexFeatureType feature, final int n) {
         this.prefix = prefix;
         this.feature = feature;
         this.n = n;
@@ -42,6 +44,7 @@ public class SPVertexNGrams implements FeatureExtractor {
             Tuple<AnnotationID, Integer> closest = ShortestPathUtil.getClosestConcept(sentence, token);
 
             if (closest == null) {
+                token.putFeature(prefix, "NULL");
                 continue;
             }
 
@@ -73,8 +76,15 @@ public class SPVertexNGrams implements FeatureExtractor {
 
 
                 // Add n-grams
+//                Collections.sort(features);
+                boolean added = false;
                 for (String ngram : NGramsUtil.getNGrams(features, n, '_')) {
                     token.putFeature(prefix, ngram);
+                    added = true;
+                }
+
+                if (!added){
+                    token.putFeature(prefix, "NULL");
                 }
             }
 

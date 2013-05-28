@@ -7,7 +7,7 @@ import com.google.common.collect.Multimap;
 import org.apache.commons.lang.StringUtils;
 import pt.ua.tm.gimli.corpus.*;
 import pt.ua.tm.gimli.tree.Tree;
-import pt.ua.tm.trigner.configuration.Configuration;
+import pt.ua.tm.trigner.global.Global;
 import pt.ua.tm.trigner.documents.Documents;
 
 import java.util.Collection;
@@ -95,7 +95,7 @@ public class Documents2InstancesConverter {
 
                 for (final Identifier id : annotation.getIDs()) {
                     String group = id.getGroup();
-                    if (Configuration.getTriggersList().contains(group)) {
+                    if (Global.projectConfiguration.getEvents().contains(group)) {
                         semGroups.add(group);
                     }
                 }

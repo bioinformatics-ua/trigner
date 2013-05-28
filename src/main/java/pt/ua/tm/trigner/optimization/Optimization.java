@@ -5,24 +5,22 @@ import cc.mallet.types.InstanceList;
 import martin.common.Tuple;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import pt.ua.tm.neji.exception.NejiException;
-import pt.ua.tm.trigner.configuration.Configuration;
+import pt.ua.tm.trigner.global.Global;
 import pt.ua.tm.trigner.documents.Documents;
 import pt.ua.tm.trigner.evaluation.Evaluator;
-import pt.ua.tm.trigner.input.DocumentsLoader;
 import pt.ua.tm.trigner.model.Documents2InstancesConverter;
 import pt.ua.tm.trigner.model.Model;
 import pt.ua.tm.trigner.model.ModelFeaturePipeline;
 import pt.ua.tm.trigner.model.ProcessingFeaturePipeline;
-import pt.ua.tm.trigner.model.configuration.ModelConfiguration;
-import pt.ua.tm.trigner.model.configuration.ModelConfiguration.ContextType;
-import pt.ua.tm.trigner.model.features.FeatureType;
-import pt.ua.tm.trigner.optimization.configuration.OptimizationConfiguration;
+import pt.ua.tm.trigner.configuration.ModelConfiguration;
+import pt.ua.tm.trigner.configuration.ModelConfiguration.ContextType;
+import pt.ua.tm.trigner.shared.Types;
+import pt.ua.tm.trigner.shared.Types.Feature;
+import pt.ua.tm.trigner.shared.CustomHashSet;
 
-import java.io.IOException;
-import java.io.InputStream;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Set;
 
 /**
  * Created with IntelliJ IDEA.
@@ -35,252 +33,297 @@ public class Optimization {
 
     private static Logger logger = LoggerFactory.getLogger(Optimization.class);
 
-    public static Map<String, Model> run(final String trainCorpusFolderPath, final String devCorpusFolderPath,
-                                         int numThreads)
-            throws NejiException {
-        return run(trainCorpusFolderPath, devCorpusFolderPath, null, numThreads);
-    }
+//    //    public static Map<String, Model> run(final String trainCorpusFolderPath, final String devCorpusFolderPath,
+//    public static void run(final String trainCorpusFolderPath, final String devCorpusFolderPath,
+//                           int numThreads)
+//            throws NejiException {
+////        return run(trainCorpusFolderPath, devCorpusFolderPath, null, numThreads);
+//        run(trainCorpusFolderPath, devCorpusFolderPath, null, numThreads);
+//    }
+//
+//    //    public static Map<String, Model> run(final String trainCorpusFolderPath, final String devCorpusFolderPath,
+//    public static void run(final String trainCorpusFolderPath, final String devCorpusFolderPath,
+//                           final String gdepPath, int numThreads) {
+//        Documents trainDocuments = DocumentsLoader.load(trainCorpusFolderPath, gdepPath, numThreads);
+//        Documents devDocuments = DocumentsLoader.load(devCorpusFolderPath, gdepPath, numThreads);
+//
+////        return run(trainDocuments, devDocuments);
+//        run(trainDocuments, devDocuments);
+//    }
+//
+//    //    public static Map<String, Model> run(final InputStream trainDocumentsStream, final InputStream devDocumentsStream)
+//    public static void run(final InputStream trainDocumentsStream, final InputStream devDocumentsStream)
+//            throws NejiException {
+//
+//        Documents trainDocuments, devDocuments;
+//        try {
+//            trainDocuments = Documents.read(trainDocumentsStream);
+//            devDocuments = Documents.read(devDocumentsStream);
+//        } catch (ClassNotFoundException | IOException ex) {
+//            throw new NejiException("There was a problem reading the input documents.");
+//        }
+////        return run(trainDocuments, devDocuments);
+//        run(trainDocuments, devDocuments);
+//    }
 
-    public static Map<String, Model> run(final String trainCorpusFolderPath, final String devCorpusFolderPath,
-                                         final String gdepPath, int numThreads) {
-        Documents trainDocuments = DocumentsLoader.load(trainCorpusFolderPath, gdepPath, numThreads);
-        Documents devDocuments = DocumentsLoader.load(devCorpusFolderPath, gdepPath, numThreads);
-
-        return run(trainDocuments, devDocuments);
-    }
-
-    public static Map<String, Model> run(final InputStream trainDocumentsStream, final InputStream devDocumentsStream)
-            throws NejiException {
-
-        Documents trainDocuments, devDocuments;
-        try {
-            trainDocuments = Documents.read(trainDocumentsStream);
-            devDocuments = Documents.read(devDocumentsStream);
-        } catch (ClassNotFoundException | IOException ex) {
-            throw new NejiException("There was a problem reading the input documents.");
-        }
-        return run(trainDocuments, devDocuments);
-    }
-
-    public static Map<String, Model> run(final Documents trainDocuments, final Documents devDocuments) {
-        Map<String, Model> models = new HashMap<>();
-
-        for (int k = 0; k < Configuration.getTriggers().length; k++) {
-            String label = Configuration.getTriggers()[k];
-
-//        for (String label : Configuration.getTriggers()) {
-
-            logger.info("############################");
-            logger.info(label);
-            logger.info("############################");
-
-            // Get dictionary
-            String dictionaryPath = "resources/dictionaries/cg/training/" + label + ".txt";
-
-            // Start features flags
-            boolean[] b = new boolean[26];
-            FeatureType[] f = new FeatureType[6];
-            int[][] g = new int[5][];
-            int[] h;
-
-            // Initialize booleans
-            for (int i = 0; i < b.length; i++) {
-                b[i] = false;
-            }
-            // Initialize feature types
-            for (int i = 0; i < f.length; i++) {
-                f[i] = OptimizationConfiguration.features[0];
-            }
-            // Initialize Ngrams
-            for (int i = 0; i < g.length; i++) {
-                g[i] = OptimizationConfiguration.ngrams[0];
-            }
-            // Initialize hops
-            h = OptimizationConfiguration.hops[0];
-            // Initialize context
-            ContextType context = OptimizationConfiguration.contexts[0];
+//    public static void run(final Documents trainDocuments, final Documents devDocuments, final String dictionaryFolderPath) {
+//
+//        for (int k = 0; k < Global.projectConfiguration.getEvents().size(); k++) {
+//            String label = Global.projectConfiguration.getEvents().get(k);
+//            run(trainDocuments, devDocuments, label);
+//        }
+////        return models;
+//    }
 
 
-            double bestF1 = Double.MIN_VALUE;
-            int bestOrder = OptimizationConfiguration.orders[0];
+    public static ModelConfiguration run(Documents trainDocuments, Documents devDocuments, String dictionaryPath, String label) {
+        Model bestModel = null;
 
-            // Optimize features usage
-            for (int i = 0; i < b.length; i++) {
-                b[i] = true;
-                logger.info("FEATURE: {}", Features.values()[i]);
+        logger.info("############################");
+        logger.info(label);
+        logger.info("############################");
 
-                boolean thereWasABetterModel = false;
-                for (int order : OptimizationConfiguration.orders) {
-                    // Get model performance
-                    Tuple<Evaluator, Boolean> tuple = getModelPerformance(trainDocuments, devDocuments, label, dictionaryPath,
-                            models, bestF1,
-                            b, f, g, h, context, order);
+        // Start features flags
+        Map<Types.Feature, Boolean> features = new HashMap<>();
+        Map<Types.NGrams, int[]> ngrams = new HashMap<>();
+        Map<Types.VertexType, Set<Types.VertexFeatureType>> vertexTypes = new HashMap<>();
+        Map<Types.HopsLength, Set<Integer>> hopsLength = new HashMap<>();
 
-                    // Set best F1
-                    Evaluator evaluator = tuple.getA();
-                    boolean improvement = tuple.getB();
-                    bestF1 = improvement ? evaluator.getF1() : bestF1;
-                    // Set best order
-                    bestOrder = improvement ? order : bestOrder;
-                    if (improvement) {
-                        thereWasABetterModel = true;
-                    }
-                }
 
-                // No optimization using that feature
-                if (!thereWasABetterModel) {
-                    b[i] = false;
-                }
+        ContextType context = Global.optimizationConfiguration.getContexts().get(0);
+        Set<ContextType> contexts = new CustomHashSet<>();
+        contexts.add(context);
 
+
+        double bestF1 = Double.MIN_VALUE;
+        int bestOrder = Global.optimizationConfiguration.getOrders().get(0);
+
+        // Optimize features usage
+        for (Types.Feature feature : Global.optimizationConfiguration.getFeatures()) {
+            features.put(feature, true);
+
+            logger.info("FEATURE: {}", feature);
+
+            // Get model performance
+            Tuple<Evaluator, Model> tuple = getModelPerformance(trainDocuments, devDocuments, label, dictionaryPath,
+                    features, ngrams, vertexTypes, hopsLength, contexts);
+
+            Evaluator evaluator = tuple.getA();
+            Model model = tuple.getB();
+
+            boolean improvement = false;
+            if (evaluator != null) {
+                improvement = evaluator.getF1() > bestF1;
             }
 
-            // Optimize contexts
-            ContextType bestContext = ContextType.NONE;
-
-            // Continue if it is possible to build windows and conjunctions
-            if (b[getFeatureIndex(Features.Token)] || b[getFeatureIndex(Features.Lemma)] ||
-                    b[getFeatureIndex(Features.POS)] || b[getFeatureIndex(Features.Chunk)]) {
-
-                for (int i = 1; i < OptimizationConfiguration.contexts.length; i++) {
-                    context = OptimizationConfiguration.contexts[i];
-                    logger.info("CONTEXT: {}", context);
-
-                    for (int order : OptimizationConfiguration.orders) {
-                        // Get model performance
-                        Tuple<Evaluator, Boolean> tuple = getModelPerformance(trainDocuments, devDocuments, label, dictionaryPath,
-                                models, bestF1,
-                                b, f, g, h, context, order);
-
-                        // Set best F1
-                        Evaluator evaluator = tuple.getA();
-                        boolean thereWasABetterModel = tuple.getB();
-                        bestF1 = thereWasABetterModel ? evaluator.getF1() : bestF1;
-                        // Set best context
-                        bestContext = thereWasABetterModel ? context : bestContext;
-                        bestOrder = thereWasABetterModel ? order : bestOrder;
-                    }
-
-
-                }
-                context = bestContext;
-            }
-
-
-            // Optimize feature type for vertex
-            for (int i = 0; i < f.length; i++) {
-
-                Features currentFeature = Features.valueOf(FeatureTypesBridge.values()[i].toString());
-                int pos = getFeatureIndex(currentFeature);
-                if (!b[pos]) {
-                    logger.info("Skipping {}. It is not used by the feature set.", currentFeature);
-                    continue;
-                }
-
-
-                FeatureType bestFeatureType = f[i];
-                for (int j = 1; j < OptimizationConfiguration.features.length; j++) {
-                    f[i] = OptimizationConfiguration.features[j];
-
-                    logger.info("FEATURE: {}, FEATURE TYPE: {}", FeatureTypesBridge.values()[i], f[i]);
-
-                    // Get model performance
-                    Tuple<Evaluator, Boolean> tuple = getModelPerformance(trainDocuments, devDocuments, label, dictionaryPath,
-                            models, bestF1,
-                            b, f, g, h, context, bestOrder);
-
-                    // Set best F1
-                    Evaluator evaluator = tuple.getA();
-                    boolean thereWasABetterModel = tuple.getB();
-                    bestF1 = thereWasABetterModel ? evaluator.getF1() : bestF1;
-                    bestFeatureType = thereWasABetterModel ? f[i] : bestFeatureType;
-                }
-                f[i] = bestFeatureType;
-            }
-
-
-            // Optimize n-grams
-            for (int i = 0; i < g.length; i++) {
-
-                Features currentFeature = Features.valueOf(NGramsBridge.values()[i].toString());
-                int pos = getFeatureIndex(currentFeature);
-                if (!b[pos]) {
-                    logger.info("Skipping {}. It is not used by the feature set.", currentFeature);
-                    continue;
-                }
-
-
-                int[] bestNGrams = g[i];
-                for (int j = 1; j < OptimizationConfiguration.ngrams.length; j++) {
-                    g[i] = OptimizationConfiguration.ngrams[j];
-
-                    logger.info("FEATURE: {}, N-GRAMS: {}", NGramsBridge.values()[i], g[i]);
-
-                    // Get model performance
-                    Tuple<Evaluator, Boolean> tuple = getModelPerformance(trainDocuments, devDocuments, label, dictionaryPath,
-                            models, bestF1,
-                            b, f, g, h, context, bestOrder);
-
-                    // Set best F1
-                    Evaluator evaluator = tuple.getA();
-                    boolean thereWasABetterModel = tuple.getB();
-                    bestF1 = thereWasABetterModel ? evaluator.getF1() : bestF1;
-                    bestNGrams = thereWasABetterModel ? g[i] : bestNGrams;
-                }
-                g[i] = bestNGrams;
-            }
-
-
-            // Optimize dependency hops
-            if (b[getFeatureIndex(Features.DPEdge)] || b[getFeatureIndex(Features.DPNGramsEdge)] ||
-                    b[getFeatureIndex(Features.DPNGramsVertex)] || b[getFeatureIndex(Features.DPVertex)]
-                    || b[getFeatureIndex(Features.DPVertexEdge)]) {
-
-                int[] bestHops = h;
-                for (int i = 1; i < OptimizationConfiguration.hops.length; i++) {
-                    h = OptimizationConfiguration.hops[i];
-
-                    logger.info("HOPS: {}", h);
-
-                    // Get model performance
-                    Tuple<Evaluator, Boolean> tuple = getModelPerformance(trainDocuments, devDocuments, label, dictionaryPath,
-                            models, bestF1,
-                            b, f, g, h, context, bestOrder);
-
-                    // Set best F1
-                    Evaluator evaluator = tuple.getA();
-                    boolean thereWasABetterModel = tuple.getB();
-                    bestF1 = thereWasABetterModel ? evaluator.getF1() : bestF1;
-                    bestHops = thereWasABetterModel ? h : bestHops;
-                }
-                h = bestHops;
+            // Set best F1
+            bestF1 = improvement ? evaluator.getF1() : bestF1;
+            bestOrder = improvement ? Integer.parseInt(model.getModelConfiguration().getProperty("model_order")) : bestOrder;
+            if (improvement) {
+//                    models.put(label, model);
+                bestModel = model;
+                logger.info("There was a better model: F1 = {}", evaluator.getF1());
+            } else {
+                features.put(feature, false);
             }
         }
-        return models;
+
+        // Optimize contexts
+        ContextType bestContext = ContextType.NONE;
+
+        // Continue if it is possible to build windows and conjunctions
+        for (int i = 1; i < Global.optimizationConfiguration.getContexts().size(); i++) {
+            context = Global.optimizationConfiguration.getContexts().get(i);
+            contexts = new CustomHashSet<>();
+            contexts.add(context);
+            logger.info("CONTEXT: {}", context);
+
+            // Get model performance
+            Tuple<Evaluator, Model> tuple = getModelPerformance(trainDocuments, devDocuments, label, dictionaryPath,
+                    features, ngrams, vertexTypes, hopsLength, contexts);
+
+            Evaluator evaluator = tuple.getA();
+            Model model = tuple.getB();
+            boolean improvement = false;
+            if (evaluator != null) {
+                improvement = evaluator.getF1() > bestF1;
+            }
+
+            // Set best F1
+            bestF1 = improvement ? evaluator.getF1() : bestF1;
+            bestOrder = improvement ? Integer.parseInt(model.getModelConfiguration().getProperty("model_order")) : bestOrder;
+            bestContext = improvement ? context : bestContext;
+            if (improvement) {
+//                        models.put(label, model);
+                bestModel = model;
+                logger.info("There was a better model: F1 = {}", evaluator.getF1());
+            }
+        }
+        context = bestContext;
+        contexts = new CustomHashSet<>();
+        contexts.add(context);
+
+
+        // Optimize feature type for vertex
+        for (Types.VertexType vertexType : Types.VertexType.values()) {
+            String vertexFeature = vertexType.toString().substring(0, vertexType.toString().lastIndexOf('_'));
+            Feature feature = Feature.valueOf(vertexFeature);
+
+            if (features.get(feature) == null || !features.get(feature)) {
+                logger.info("Skipping {}. It is not used by the feature set.", feature);
+                continue;
+            }
+
+            Types.VertexFeatureType bestVertexFeatureType = Global.optimizationConfiguration.getVertex().get(0);
+            for (int j = 1; j < Global.optimizationConfiguration.getVertex().size(); j++) {
+                Types.VertexFeatureType vertexFeatureType = Global.optimizationConfiguration.getVertex().get(j);
+
+                Set<Types.VertexFeatureType> set = new CustomHashSet<>();
+                set.add(vertexFeatureType);
+//                vertexTypes.put(vertexType, vertexFeatureType);
+                vertexTypes.put(vertexType, set);
+
+                logger.info("FEATURE: {}, FEATURE TYPE: {}", vertexType, vertexFeatureType);
+
+                // Get model performance
+                Tuple<Evaluator, Model> tuple = getModelPerformance(trainDocuments, devDocuments, label, dictionaryPath,
+                        features, ngrams, vertexTypes, hopsLength, contexts);
+
+                Evaluator evaluator = tuple.getA();
+                Model model = tuple.getB();
+                boolean improvement = false;
+                if (evaluator != null) {
+                    improvement = evaluator.getF1() > bestF1;
+                }
+
+                // Set best F1
+                bestF1 = improvement ? evaluator.getF1() : bestF1;
+                bestOrder = improvement ? Integer.parseInt(model.getModelConfiguration().getProperty("model_order")) : bestOrder;
+                bestVertexFeatureType = improvement ? vertexFeatureType : bestVertexFeatureType;
+                if (improvement) {
+//                        models.put(label, model);
+                    bestModel = model;
+                    logger.info("There was a better model: F1 = {}", evaluator.getF1());
+                }
+            }
+            Set<Types.VertexFeatureType> set = new CustomHashSet<>();
+            set.add(bestVertexFeatureType);
+            vertexTypes.put(vertexType, set);
+        }
+
+        // Optimize n-grams
+        for (Types.NGrams ngramType : Types.NGrams.values()) {
+            String ngramFeature = ngramType.toString().substring(0, ngramType.toString().lastIndexOf('_'));
+            Feature feature = Feature.valueOf(ngramFeature);
+            if (features.get(feature) == null || !features.get(feature)) {
+                logger.info("Skipping {}. It is not used by the feature set.", feature);
+                continue;
+            }
+
+            int[] bestNGrams = Global.optimizationConfiguration.getNgrams().get(0);
+            for (int j = 1; j < Global.optimizationConfiguration.getNgrams().size(); j++) {
+                int[] ngram = Global.optimizationConfiguration.getNgrams().get(j);
+                ngrams.put(ngramType, ngram);
+
+                logger.info("FEATURE: {}, N-GRAMS: {}", ngramType, ngram);
+
+                // Get model performance
+                Tuple<Evaluator, Model> tuple = getModelPerformance(trainDocuments, devDocuments, label, dictionaryPath,
+                        features, ngrams, vertexTypes, hopsLength, contexts);
+
+                Evaluator evaluator = tuple.getA();
+                Model model = tuple.getB();
+                boolean improvement = false;
+                if (evaluator != null) {
+                    improvement = evaluator.getF1() > bestF1;
+                }
+
+                // Set best F1
+                bestF1 = improvement ? evaluator.getF1() : bestF1;
+                bestOrder = improvement ? Integer.parseInt(model.getModelConfiguration().getProperty("model_order")) : bestOrder;
+                bestNGrams = improvement ? ngram : bestNGrams;
+                if (improvement) {
+//                        models.put(label, model);
+                    bestModel = model;
+                    logger.info("There was a better model: F1 = {}", evaluator.getF1());
+                }
+
+            }
+            ngrams.put(ngramType, bestNGrams);
+        }
+
+
+        // Optimize dependency hops
+        for (Types.HopsLength hopsType : Types.HopsLength.values()) {
+            String hopsFeature = hopsType.toString().substring(0, hopsType.toString().lastIndexOf('_'));
+            Feature feature = Feature.valueOf(hopsFeature);
+            if (features.get(feature) == null || !features.get(feature)) {
+                logger.info("Skipping {}. It is not used by the feature set.", feature);
+                continue;
+            }
+
+            int bestHopLength = Global.optimizationConfiguration.getHops().get(0);
+            for (int i = 1; i < Global.optimizationConfiguration.getHops().size(); i++) {
+                Integer hopLength = Global.optimizationConfiguration.getHops().get(i);
+
+                Set<Integer> set = new CustomHashSet<>();
+                set.add(hopLength);
+
+                hopsLength.put(hopsType, set);
+
+                logger.info("HOPS: {}", hopLength);
+
+                // Get model performance
+                Tuple<Evaluator, Model> tuple = getModelPerformance(trainDocuments, devDocuments, label, dictionaryPath,
+                        features, ngrams, vertexTypes, hopsLength, contexts);
+
+                Evaluator evaluator = tuple.getA();
+                Model model = tuple.getB();
+                boolean improvement = false;
+                if (evaluator != null) {
+                    improvement = evaluator.getF1() > bestF1;
+                }
+
+                // Set best F1
+                bestF1 = improvement ? evaluator.getF1() : bestF1;
+                bestOrder = improvement ? Integer.parseInt(model.getModelConfiguration().getProperty("model_order")) : bestOrder;
+                bestHopLength = improvement ? hopLength : bestHopLength;
+                if (improvement) {
+//                        models.put(label, model);
+                    bestModel = model;
+                    logger.info("There was a better model: F1 = {}", evaluator.getF1());
+                }
+
+            }
+            Set<Integer> set = new CustomHashSet<>();
+            set.add(bestHopLength);
+            hopsLength.put(hopsType, set);
+        }
+
+        // Suggest garbage collection
+        System.gc();
+
+        return bestModel.getModelConfiguration();
     }
 
-    private static ModelConfiguration getModelConfiguration(final boolean[] b, final FeatureType[] f, final int[][] g, final int[] h,
-                                                            final ModelConfiguration.ContextType context, final int order) {
-        return new ModelConfiguration(b, f, g, h, context, order);
-    }
+    private static Tuple<Evaluator, Model> getModelPerformance(Documents trainDocuments, Documents devDocuments,
+                                                               final String label, final String dictionaryPath,
 
-    private static Tuple<Evaluator, Boolean> getModelPerformance(Documents trainDocuments, Documents devDocuments,
-                                                                 final String label, final String dictionaryPath,
-                                                                 Map<String, Model> models, double bestF1,
+                                                               Map<Types.Feature, Boolean> features,
+                                                               Map<Types.NGrams, int[]> ngrams,
+                                                               Map<Types.VertexType, Set<Types.VertexFeatureType>> vertexTypes,
+                                                               Map<Types.HopsLength, Set<Integer>> hopsLength,
 
-                                                                 final boolean[] b, final FeatureType[] f, final int[][] g, final int[] h,
-                                                                 final ModelConfiguration.ContextType context, final int order) {
+                                                               final Set<ModelConfiguration.ContextType> contexts) {
 
         // Get Model Configuration
-        ModelConfiguration modelConfiguration = getModelConfiguration(b, f, g, h, context, order);
+        ModelConfiguration modelConfiguration = new ModelConfiguration(features, ngrams, vertexTypes, hopsLength, contexts, 1);
 
 //        try {
-//            modelConfiguration.store(new FileWriter("/Users/david/Downloads/tmp.config"), "");
+//            modelConfiguration.store(new FileWriter("model.config"), "TEMP");
 //        } catch (IOException e) {
-//            throw new RuntimeException("There was a problem storing the model configuration.", e);
+//            throw new RuntimeException("There was a problem storing the configuration file.");
 //        }
-
-        // Model
-        Model model = new Model(modelConfiguration);
 
         // Pre-processing features
         ProcessingFeaturePipeline.get(modelConfiguration).run(trainDocuments);
@@ -289,116 +332,50 @@ public class Optimization {
         // Model features
         Pipe pipe = ModelFeaturePipeline.get(modelConfiguration, dictionaryPath);
 
-        // Get Train instances
+        // Get Annotate instances
         InstanceList train = Documents2InstancesConverter.getInstanceList(trainDocuments, pipe, label);
-
-        // Train model
-        model.train(train);
-
         // Get Dev instances
         InstanceList dev = Documents2InstancesConverter.getInstanceList(devDocuments, pipe, label);
 
-        // Get performance
-        Evaluator evaluator = new Evaluator(model);
-        evaluator.evaluate(dev);
+        double bestF1 = Double.MIN_VALUE;
+        Evaluator bestEvaluator = null;
+        Model bestModel = null;
+        int bestOrder = Global.optimizationConfiguration.getOrders().get(0);
+        for (int order : Global.optimizationConfiguration.getOrders()) {
+            modelConfiguration.setProperty("model_order", new Integer(order).toString());
 
-        double f1 = evaluator.getF1();
+            // Annotate model
+            Model model = new Model(modelConfiguration);
+            model.train(train);
 
-        // Best F1
-        boolean thereWasABetterModel = false;
-        if (f1 > bestF1) {
-            models.put(label, model);
-            thereWasABetterModel = true;
+            // Get performance
+            Evaluator evaluator = new Evaluator(model);
+            evaluator.evaluate(dev);
 
+            double f1 = evaluator.getF1();
+
+            // Best F1
+            if (f1 > bestF1) {
+                bestEvaluator = evaluator;
+                bestModel = model;
+                bestF1 = f1;
+                bestOrder = order;
+            }
             // Print best one so far
             logger.info("\t\tFEATURE_SIZE: {} | ORDER: {} | LABEL: {} | P: {} | R: {} | F1: {}",
                     new Object[]{train.getDataAlphabet().size(), order, label,
                             evaluator.getPrecision(), evaluator.getRecall(), f1});
-        } else {
-            logger.info("\t\tNo improvement.\tFEATURE_SIZE: {} | ORDER: {} | LABEL: {} | P: {} | R: {} | F1: {}",
-                    new Object[]{train.getDataAlphabet().size(), order, label,
-                            evaluator.getPrecision(), evaluator.getRecall(), f1});
         }
+
 
         // Clean features from documents
         String[] featuresToKeep = new String[]{"POS", "LEMMA"};
         trainDocuments.cleanFeatures(featuresToKeep);
         devDocuments.cleanFeatures(featuresToKeep);
 
-        return new Tuple<>(evaluator, thereWasABetterModel);
-    }
+        modelConfiguration.setProperty("model_order", new Integer(bestOrder).toString());
+        System.gc();
 
-    private static int getFeatureIndex(Features feature) {
-        for (int i = 0; i < Features.values().length; i++) {
-            if (Features.values()[i].equals(feature)) {
-                return i;
-            }
-        }
-        return -1;
-    }
-
-    private enum Features {
-        Token,
-        Lemma,
-        POS,
-        Chunk,
-
-        Capitalization,
-        Counting,
-        Symbols,
-
-        CharNGrams,
-        Suffix,
-        Prefix,
-        WordShape,
-
-        ConceptTags,
-        ConceptCounting,
-
-        Triggers,
-
-        DPModifiers,
-        DPVertex,
-        DPEdge,
-        DPVertexEdge,
-        DPNGramsVertex,
-        DPNGramsEdge,
-
-        SPDistance,
-        SPVertex,
-        SPEdge,
-        SPVertexEdge,
-        SPNGramsVertex,
-        SPNGramsEdge
-    }
-
-    private enum FeatureTypesBridge {
-        DPVertex,
-        DPVertexEdge,
-        DPNGramsVertex,
-
-        SPVertex,
-        SPVertexEdge,
-        SPNGramsVertex,
-    }
-
-    private enum NGramsBridge {
-        CharNGrams,
-        Suffix,
-        Prefix,
-
-        DPNGramsVertex,
-        DPNGramsEdge,
-
-        SPNGramsVertex,
-        SPNGramsEdge
-    }
-
-    private enum HopsBridge {
-        DPVertex,
-        DPEdge,
-        DPVertexEdge,
-        DPNGramsVertex,
-        DPNGramsEdge,
+        return new Tuple<>(bestEvaluator, bestModel);
     }
 }

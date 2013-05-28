@@ -2,7 +2,8 @@ package pt.ua.tm.trigner.util;
 
 import pt.ua.tm.gimli.corpus.Chunk;
 import pt.ua.tm.gimli.corpus.Token;
-import pt.ua.tm.trigner.model.features.FeatureType;
+import pt.ua.tm.trigner.shared.Types;
+import pt.ua.tm.trigner.shared.Types.VertexFeatureType;
 
 /**
  * Created with IntelliJ IDEA.
@@ -12,7 +13,7 @@ import pt.ua.tm.trigner.model.features.FeatureType;
  * To change this template use File | Settings | File Templates.
  */
 public class TokenFeatureUtil {
-    public static String getFeature(final Token token, final FeatureType feature) {
+    public static String getFeature(final Token token, final Types.VertexFeatureType feature) {
         switch (feature) {
             case WORD:
                 return token.getText();

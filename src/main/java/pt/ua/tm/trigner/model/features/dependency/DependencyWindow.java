@@ -6,8 +6,9 @@ import pt.ua.tm.gimli.corpus.Sentence;
 import pt.ua.tm.gimli.corpus.Token;
 import pt.ua.tm.gimli.corpus.dependency.LabeledEdge;
 import pt.ua.tm.gimli.features.corpus.pipeline.FeatureExtractor;
-import pt.ua.tm.trigner.model.features.FeatureType;
-import pt.ua.tm.trigner.model.features.TokenFeatureUtil;
+import pt.ua.tm.trigner.shared.Types;
+import pt.ua.tm.trigner.shared.Types.VertexFeatureType;
+import pt.ua.tm.trigner.util.TokenFeatureUtil;
 
 import java.util.List;
 
@@ -22,9 +23,9 @@ public class DependencyWindow implements FeatureExtractor {
 
     private int maxHops;
     private String prefix;
-    private FeatureType[] features;
+    private Types.VertexFeatureType[] features;
 
-    public DependencyWindow(final String prefix, final FeatureType[] features, final int maxHops) {
+    public DependencyWindow(final String prefix, final Types.VertexFeatureType[] features, final int maxHops) {
         this.prefix = prefix;
         this.maxHops = maxHops;
         this.features = features;
@@ -56,7 +57,9 @@ public class DependencyWindow implements FeatureExtractor {
                         token3 = (Token) edge.getV1();
                     }
 
-                    for (FeatureType feature : features) {
+
+                    token1.putFeature(prefix, "LABEL=" + edge.getLabel().toString());
+                    for (Types.VertexFeatureType feature : features) {
                         token1.putFeature(prefix, feature + "=" + TokenFeatureUtil.getFeature(token3, feature));
                     }
 

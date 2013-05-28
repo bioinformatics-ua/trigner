@@ -6,7 +6,7 @@ import pt.ua.tm.gimli.corpus.Sentence;
 import pt.ua.tm.gimli.corpus.Token;
 import pt.ua.tm.gimli.features.corpus.pipeline.FeatureExtractor;
 import pt.ua.tm.gimli.tree.Tree;
-import pt.ua.tm.trigner.configuration.Configuration;
+import pt.ua.tm.trigner.global.Global;
 
 import java.util.List;
 
@@ -21,7 +21,7 @@ public class ConceptCounting implements FeatureExtractor {
 
     @Override
     public void extract(Sentence sentence) {
-        for (String concept : Configuration.getConcepts()) {
+        for (String concept : Global.projectConfiguration.getConcepts()) {
             setNumberOfConceptAsFeature(sentence, concept);
         }
     }

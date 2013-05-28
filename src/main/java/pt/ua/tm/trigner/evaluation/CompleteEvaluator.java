@@ -3,7 +3,8 @@ package pt.ua.tm.trigner.evaluation;
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import pt.ua.tm.trigner.configuration.Configuration;
+import pt.ua.tm.trigner.configuration.EventGroup;
+import pt.ua.tm.trigner.global.Global;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -26,7 +27,7 @@ import java.util.regex.Pattern;
 public class CompleteEvaluator {
 
     private static final Pattern triggerPattern = Pattern.compile("T[0-9]+");
-    private static final String TRIGGER_ENTITY = "Trigger";
+
     private static Logger logger = LoggerFactory.getLogger(CompleteEvaluator.class);
     private Map<String, Evaluation> evaluations;
 
@@ -34,20 +35,14 @@ public class CompleteEvaluator {
         this.evaluations = new HashMap<>();
     }
 
-    public void evaluate(final InputStream goldA1InputStream, final InputStream silverA1Stream, final boolean justTriggerEvaluation) {
+    public void evaluate(final InputStream goldA1InputStream, final InputStream silverA1Stream) {
         TriggerList goldList = getTriggerListFromInputStream(goldA1InputStream);
         TriggerList silverList = getTriggerListFromInputStream(silverA1Stream);
 
-        evaluate(goldList, silverList, justTriggerEvaluation);
+        evaluate(goldList, silverList);
     }
 
-    public void evaluate(TriggerList goldList, TriggerList silverList, final boolean justTriggerEvaluation) {
-
-        if (justTriggerEvaluation) {
-            goldList = getTriggerListForTriggerEvaluation(goldList);
-            silverList = getTriggerListForTriggerEvaluation(silverList);
-        }
-
+    public void evaluate(TriggerList goldList, TriggerList silverList) {
         //Silver on Gold
         for (Trigger gold : goldList) {
             if (!silverList.contains(gold)) {
@@ -71,18 +66,6 @@ public class CompleteEvaluator {
             }
             evaluations.put(entity, evaluation);
         }
-    }
-
-    private TriggerList getTriggerListForTriggerEvaluation(TriggerList triggerList) {
-        TriggerList newTriggerList = new TriggerList();
-
-        for (Trigger trigger : triggerList) {
-            trigger.setEntity(TRIGGER_ENTITY);
-            if (!newTriggerList.contains(trigger)) {
-                newTriggerList.add(trigger);
-            }
-        }
-        return newTriggerList;
     }
 
     public void reset() {
@@ -135,24 +118,23 @@ public class CompleteEvaluator {
     }
 
     public void print() {
-        for (String entity : evaluations.keySet()) {
-            Evaluation evaluation = evaluations.get(entity);
-            printEvaluation(entity, evaluation);
+        // Individual
+        for (String event : Global.projectConfiguration.getEvents()) {
+            Evaluation evaluation = evaluations.get(event);
+            printEvaluation(event, evaluation);
         }
-
         logger.info("");
 
-        // Event total
-        Evaluation evaluation = getGroup(new String[]{"Gene_expression", "Transcription", "Protein_catabolism", "Phosphorylation", "Localization", "Binding"});
-        printEvaluation("EVT-TOTAL", evaluation);
+        // Groups
+        for (EventGroup group : Global.projectConfiguration.getGroups()) {
+            Evaluation evaluation = getGroup(group.getEvents().toArray(new String[]{}));
+            printEvaluation(group.getName(), evaluation);
+        }
+        logger.info("");
 
-        // Regulation total
-        evaluation = getGroup(new String[]{"Regulation", "Positive_regulation", "Negative_regulation"});
-        printEvaluation("REG-TOTAL", evaluation);
-
-        // Overall evaluation
-        evaluation = getOverall();
-        printEvaluation("overall", evaluation);
+        // Overall
+        Evaluation evaluation = getOverall();
+        printEvaluation("Overall", evaluation);
     }
 
     private void printEvaluation(final String entity, final Evaluation evaluation) {
@@ -163,7 +145,6 @@ public class CompleteEvaluator {
                 evaluation.getTP(), evaluation.getFP(), evaluation.getFN(),
                 decimalFormat.format(evaluation.getPrecision()), decimalFormat.format(evaluation.getRecall()), decimalFormat.format(evaluation.getF1())
         });
-
     }
 
     private TriggerList getTriggerListFromInputStream(final InputStream inputStream) {
@@ -181,15 +162,12 @@ public class CompleteEvaluator {
                 String[] fields = parts[1].split("\\s+");
                 String entity = fields[0];
 
-//                if (Constants.entitiesPattern.matcher(entity).matches()){
-//                    continue;
-//                }
-                if (Configuration.getConceptsPattern().matcher(entity).matches()) {
+                if (Global.projectConfiguration.getConcepts().contains(entity)) {
                     continue;
                 }
-//                if (entity.equals("Entity") || entity.equals("Protein")) {
-//                    continue;
-//                }
+                if (!Global.projectConfiguration.getEvents().contains(entity)) {
+                    continue;
+                }
 
                 int start = Integer.parseInt(fields[1]);
                 int end = Integer.parseInt(fields[2]);

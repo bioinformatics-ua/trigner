@@ -6,7 +6,7 @@ import pt.ua.tm.gimli.corpus.Identifier;
 import pt.ua.tm.gimli.corpus.Sentence;
 import pt.ua.tm.gimli.corpus.Token;
 import pt.ua.tm.gimli.tree.Tree;
-import pt.ua.tm.trigner.configuration.Global;
+import pt.ua.tm.trigner.global.Global;
 
 import java.util.ArrayList;
 import java.util.List;

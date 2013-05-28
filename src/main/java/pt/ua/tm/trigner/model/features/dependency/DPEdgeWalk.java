@@ -48,7 +48,6 @@ public class DPEdgeWalk implements FeatureExtractor {
 
                 StringBuilder sb = new StringBuilder();
                 for (LabeledEdge edge : edges) {
-
                     sb.append(edge.getLabel());
                     sb.append("-");
                 }

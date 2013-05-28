@@ -2,7 +2,8 @@ resources
 target
 logs
 documents
-
+old
+downloads
 
 #idea
 .idea

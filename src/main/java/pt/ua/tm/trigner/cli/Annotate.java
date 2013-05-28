@@ -5,9 +5,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import pt.ua.tm.gimli.external.gdep.GDepParser;
 import pt.ua.tm.neji.exception.NejiException;
-import pt.ua.tm.trigner.configuration.Global;
-import pt.ua.tm.trigner.output.Context;
-import pt.ua.tm.trigner.output.FolderBatch;
+import pt.ua.tm.trigner.global.Global;
+import pt.ua.tm.trigner.annotate.Context;
+import pt.ua.tm.trigner.annotate.FolderBatch;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -233,7 +233,14 @@ public class Annotate {
         }
 
 
-        Context context = new Context(modelsFolderPath, dictionariesFolderPath, gdepFolderPath, GDepParser.ParserLevel.DEPENDENCY, false);
+        GDepParser.ParserLevel parserLevel;
+        if (modelsFolderPath != null) {
+            parserLevel = GDepParser.ParserLevel.DEPENDENCY;
+        } else {
+            parserLevel = GDepParser.ParserLevel.TOKENIZATION;
+        }
+
+        Context context = new Context(modelsFolderPath, dictionariesFolderPath, gdepFolderPath, parserLevel);
         FolderBatch batch = new FolderBatch(inputFolderPath, outputFolderPath, conceptFolderPath, NUM_THREADS);
         try {
             batch.run(context);

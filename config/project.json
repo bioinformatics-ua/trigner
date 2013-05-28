@@ -1,0 +1,26 @@
+{
+  "groups": [
+    {
+      "name": "EVT-TOTAL",
+      "events": [
+        "Gene_expression",
+        "Transcription",
+        "Protein_catabolism",
+        "Phosphorylation",
+        "Localization",
+        "Binding"
+      ]
+    },
+    {
+      "name": "REG-TOTAL",
+      "events": [
+        "Regulation",
+        "Positive_regulation",
+        "Negative_regulation"
+      ]
+    }
+  ],
+  "concepts": [
+    "Protein"
+  ]
+}

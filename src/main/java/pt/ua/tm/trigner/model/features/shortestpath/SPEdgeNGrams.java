@@ -8,7 +8,8 @@ import pt.ua.tm.gimli.corpus.Token;
 import pt.ua.tm.gimli.corpus.dependency.DependencyTag;
 import pt.ua.tm.gimli.corpus.dependency.LabeledEdge;
 import pt.ua.tm.gimli.features.corpus.pipeline.FeatureExtractor;
-import pt.ua.tm.trigner.model.features.NGramsUtil;
+import pt.ua.tm.trigner.util.NGramsUtil;
+import pt.ua.tm.trigner.util.ShortestPathUtil;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -38,6 +39,7 @@ public class SPEdgeNGrams implements FeatureExtractor {
             Tuple<AnnotationID, Integer> closest = ShortestPathUtil.getClosestConcept(sentence, token);
 
             if (closest == null) {
+                token.putFeature(prefix, "NULL");
                 continue;
             }
 
@@ -58,8 +60,15 @@ public class SPEdgeNGrams implements FeatureExtractor {
 
 
                 // Add n-grams
+//                Collections.sort(features);
+                boolean added = false;
                 for (String ngram : NGramsUtil.getNGrams(features, n, '_')) {
                     token.putFeature(prefix, ngram);
+                    added = true;
+                }
+
+                if (!added){
+                    token.putFeature(prefix, "NULL");
                 }
             }
 

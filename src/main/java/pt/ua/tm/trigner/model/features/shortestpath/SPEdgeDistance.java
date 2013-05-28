@@ -6,6 +6,7 @@ import pt.ua.tm.gimli.corpus.AnnotationID;
 import pt.ua.tm.gimli.corpus.Sentence;
 import pt.ua.tm.gimli.corpus.Token;
 import pt.ua.tm.gimli.features.corpus.pipeline.FeatureExtractor;
+import pt.ua.tm.trigner.util.ShortestPathUtil;
 
 /**
  * Created with IntelliJ IDEA.
@@ -30,6 +31,7 @@ public class SPEdgeDistance implements FeatureExtractor {
             Tuple<AnnotationID, Integer> closest = ShortestPathUtil.getClosestConcept(sentence, token);
 
             if (closest == null) {
+                token.putFeature(prefix, new Integer(0).toString());
                 continue;
             }
 
@@ -38,7 +40,8 @@ public class SPEdgeDistance implements FeatureExtractor {
             DijkstraShortestPath path = new DijkstraShortestPath(sentence.getDependencyGraph(), token, closestToken);
 
             if (path != null) {
-                token.putFeature(prefix, new Double(path.getPathLength()).toString());
+                int length = (int) path.getPathLength();
+                token.putFeature(prefix, new Integer(length).toString());
             }
 
         }

@@ -13,7 +13,7 @@ import pt.ua.tm.gimli.corpus.Identifier;
 import pt.ua.tm.gimli.corpus.Sentence;
 import pt.ua.tm.gimli.tree.Tree;
 import pt.ua.tm.gimli.tree.TreeNode;
-import pt.ua.tm.trigner.configuration.Global;
+import pt.ua.tm.trigner.global.Global;
 import pt.ua.tm.trigner.documents.Documents;
 
 import java.util.ArrayList;

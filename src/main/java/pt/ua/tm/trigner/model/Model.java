@@ -9,8 +9,9 @@ import pt.ua.tm.gimli.config.Constants;
 import pt.ua.tm.gimli.corpus.Corpus;
 import pt.ua.tm.gimli.exception.GimliException;
 import pt.ua.tm.gimli.model.CRFBase;
-import pt.ua.tm.trigner.model.configuration.ModelConfiguration;
+import pt.ua.tm.trigner.configuration.ModelConfiguration;
 
+import java.io.InputStream;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
@@ -27,6 +28,11 @@ public class Model extends CRFBase {
     private static Logger logger = LoggerFactory.getLogger(Model.class);
     private String[] allowedTags;
     private ModelConfiguration mc;
+
+    public Model(final ModelConfiguration mc, final InputStream inputStream) throws GimliException {
+        super(null, Constants.Parsing.FW, inputStream);
+        this.mc = mc;
+    }
 
     public Model(final ModelConfiguration mc) {
         super(null, Constants.Parsing.FW);
@@ -96,7 +102,7 @@ public class Model extends CRFBase {
         // Define allowed tags based on input instances+
         this.allowedTags = getAllowedTagsFromInstances(instances);
 
-//        logger.info("Train size: {}", instances.size());
+//        logger.info("Annotate size: {}", instances.size());
 //        printInstancesSizes(instances);
 
         // Define CRF
@@ -135,6 +141,7 @@ public class Model extends CRFBase {
         };
         evaluator.evaluate(crfTrainer);
         setCRF(crf);
+
     }
 
     public void test(InstanceList instances) {

@@ -6,7 +6,7 @@ import pt.ua.tm.gimli.corpus.Sentence;
 import pt.ua.tm.gimli.corpus.Token;
 import pt.ua.tm.gimli.features.corpus.pipeline.FeatureExtractor;
 import pt.ua.tm.gimli.tree.Tree;
-import pt.ua.tm.trigner.configuration.Configuration;
+import pt.ua.tm.trigner.global.Global;
 
 import java.util.Arrays;
 import java.util.HashSet;
@@ -53,7 +53,7 @@ public class ConceptTags implements FeatureExtractor {
         // Sort semantic groups
         List<String> groups = Arrays.asList(semGroups.toArray(new String[]{}));
         for (String group : groups) {
-            if (Configuration.getConceptsList().contains(group)) {
+            if (Global.projectConfiguration.getConcepts().contains(group)) {
 //                token.putFeature("CONCEPT=" + group.toUpperCase(), "");
                 token.putFeature(prefix, group.toUpperCase());
             }
