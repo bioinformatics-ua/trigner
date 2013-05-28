@@ -1,8 +1,9 @@
-package pt.ua.tm.trigner.input;
+package pt.ua.tm.trigner.cli;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import pt.ua.tm.trigner.documents.Documents;
+import pt.ua.tm.trigner.input.DocumentsLoader;
 
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -15,9 +16,9 @@ import java.util.zip.GZIPOutputStream;
  * Time: 15:41
  * To change this template use File | Settings | File Templates.
  */
-public class Main {
+public class Convert {
 
-    private static Logger logger = LoggerFactory.getLogger(Main.class);
+    private static Logger logger = LoggerFactory.getLogger(Convert.class);
 
     public static void main(String... args) {
 
@@ -25,12 +26,16 @@ public class Main {
 //        String inputFolder = "resources/corpus/bionlp2013/cg/dev/";
         String gdepPath = "/Volumes/data/Dropbox/PhD/work/platform/code/neji/resources/tools/gdep";
 
-        String inputFolder = "resources/corpus/bionlp2009/dev/gold";
-        String outputFile = "resources/corpus/bionlp2009/dev/documents.gz";
-        int numThreads = 4;
+//        String inputFolder = "resources/corpus/bionlp2013/dev/";
+//        String outputFile = "resources/corpus/bionlp2013/dev.gz";
 
-//        String inputFolder = "/Users/david/Downloads/tmp/";
-//        String outputFile = "/Users/david/Downloads/tmp/documents.gz";
+//        String inputFolder = "resources/corpus/bionlp2013/dev/";
+//        String outputFile = "resources/corpus/bionlp2013/dev.gz";
+
+        int numThreads = 1;
+
+        String inputFolder = "/Users/david/Downloads/test/input/";
+        String outputFile = "/Users/david/Downloads/test/documents.gz";
 
 
         Documents documents = DocumentsLoader.load(inputFolder, gdepPath, numThreads);

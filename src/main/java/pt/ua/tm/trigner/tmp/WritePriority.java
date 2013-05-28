@@ -1,14 +1,18 @@
-package pt.ua.tm.trigner.optimization;
+package pt.ua.tm.trigner.tmp;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.slf4j.bridge.SLF4JBridgeHandler;
 import pt.ua.tm.gimli.exception.GimliException;
 import pt.ua.tm.trigner.documents.Documents;
 import pt.ua.tm.trigner.model.Model;
 import pt.ua.tm.trigner.model.configuration.ModelConfiguration;
 
-import java.io.*;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.IOException;
 import java.util.Map;
+import java.util.logging.LogManager;
 import java.util.zip.GZIPInputStream;
 import java.util.zip.GZIPOutputStream;
 
@@ -19,36 +23,44 @@ import java.util.zip.GZIPOutputStream;
  * Time: 17:36
  * To change this template use File | Settings | File Templates.
  */
-public class Main {
-    private static Logger logger = LoggerFactory.getLogger(Main.class);
+public class WritePriority {
+    private static Logger logger = LoggerFactory.getLogger(WritePriority.class);
 
     public static void main(String... args) {
 
         boolean verbose = false;
-        if (args.length > 0){
-            if (args[0].equals("-v")){
+        if (args.length > 0) {
+            if (args[0].equals("-v")) {
                 verbose = true;
             }
         }
 
-        String trainDocumentsFilePath = "resources/corpus/bionlp2009/train/documents.gz";
+        if (!verbose) {
+            LogManager.getLogManager().reset();
+        } else {
+            SLF4JBridgeHandler.removeHandlersForRootLogger();
+            SLF4JBridgeHandler.install();
+        }
+
+
+        String trainDocumentsFilePath = "resources/corpus/merged/new_train.gz";
 //        String devDocumentsFilePath = "resources/corpus/bion lp2009/dev/documents.gz";
-        String outputFolder = "resources/models/bionlp2009/";
+//        String outputFolder = "resources/models/bionlp2009/";
 
 
         // Disable output from Mallet and GDepTranslator
-        if (!verbose) {
-            System.setOut(new PrintStream(new OutputStream() {
-                @Override
-                public void write(int b) {
-                }
-            }));
-            System.setErr(new PrintStream(new OutputStream() {
-                @Override
-                public void write(int b) {
-                }
-            }));
-        }
+//        if (!verbose) {
+//            System.setOut(new PrintStream(new OutputStream() {
+//                @Override
+//                public void write(int b) {
+//                }
+//            }));
+//            System.setErr(new PrintStream(new OutputStream() {
+//                @Override
+//                public void write(int b) {
+//                }
+//            }));
+//        }
 
         Documents documents, trainDocuments, devDocuments;
 
@@ -60,57 +72,63 @@ public class Main {
             return;
         }
 
-        Documents[] docs = documents.splitInOrder(new double[]{0.8, 0.2});
+//        Documents[] docs = documents.splitInOrder(new double[]{0.8, 0.2});
+        Documents[] docs = documents.splitRandom(new double[]{0.8, 0.2});
 
 
         trainDocuments = docs[0];
         devDocuments = docs[1];
 
 
-        logger.info("Train size: {}", trainDocuments.size());
+        logger.info("Annotate size: {}", trainDocuments.size());
         logger.info("Dev size: {}", devDocuments.size());
 
         // Add pre-processing features
-//        Features.add(new Documents[]{trainDocuments, devDocuments});
+//        Feature.add(new Documents[]{trainDocuments, devDocuments});
 
         // Get best models for each trigger
-        Map<String, Model> models = Optimization.run(trainDocuments, devDocuments);
+//        Map<String, Model> models = Optimization.run(trainDocuments, devDocuments);
+//        Optimization.run(trainDocuments, devDocuments);
 
         // Store models
-        writeModels(models, outputFolder);
+//        writeModels(models, outputFolder);
 
     }
 
     private static void writeModels(final Map<String, Model> models, final String outputFolder) {
         for (String label : models.keySet()) {
             Model model = models.get(label);
-            ModelConfiguration mc = model.getModelConfiguration();
-
-            // Write properties
-            writeProperties(outputFolder, label);
-
-            // Save best model
-            String name = outputFolder + label + ".gz";
-            try (GZIPOutputStream gzipOutputStream = new GZIPOutputStream(new FileOutputStream(name))) {
-                model.write(gzipOutputStream);
-            } catch (IOException | GimliException e) {
-                logger.error("There was a problem writing the model to the file: " + name, e);
-                return;
-            }
-
-            // Save best config
-            name = outputFolder + label + ".config";
-            try (FileOutputStream fos = new FileOutputStream(name)) {
-                mc.store(fos, label);
-            } catch (IOException e) {
-                logger.error("There was a problem writing the model configuration to the file: " + name, e);
-                return;
-            }
+            writeModel(model, label, outputFolder);
         }
 
         // Write priority file
         writePriority(models, outputFolder);
 
+    }
+
+    public static void writeModel(final Model model, final String label, final String outputFolder) {
+        ModelConfiguration mc = model.getModelConfiguration();
+
+        // Write properties
+        writeProperties(outputFolder, label);
+
+        // Save best model
+        String name = outputFolder + label + ".gz";
+        try (GZIPOutputStream gzipOutputStream = new GZIPOutputStream(new FileOutputStream(name))) {
+            model.write(gzipOutputStream);
+        } catch (IOException | GimliException e) {
+            logger.error("There was a problem writing the model to the file: " + name, e);
+            return;
+        }
+
+        // Save best config
+        name = outputFolder + label + ".config";
+        try (FileOutputStream fos = new FileOutputStream(name)) {
+            mc.store(fos, label);
+        } catch (IOException e) {
+            logger.error("There was a problem writing the model configuration to the file: " + name, e);
+            return;
+        }
     }
 
     private static void writePriority(final Map<String, Model> models, final String outputFolder) {

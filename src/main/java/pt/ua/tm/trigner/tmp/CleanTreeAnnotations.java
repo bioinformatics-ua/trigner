@@ -1,4 +1,4 @@
-package pt.ua.tm.trigner.output;
+package pt.ua.tm.trigner.tmp;
 
 import monq.jfa.*;
 import pt.ua.tm.gimli.corpus.AnnotationID;
@@ -77,6 +77,7 @@ public class CleanTreeAnnotations extends BaseLoader {
                     }
                 }
             }
+
 
 
             sentence++;

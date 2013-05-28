@@ -1,4 +1,4 @@
-package pt.ua.tm.trigner.output;
+package pt.ua.tm.trigner.annotate;
 
 import cc.mallet.fst.CRF;
 import cc.mallet.fst.NoopTransducerTrainer;
@@ -13,10 +13,8 @@ import pt.ua.tm.gimli.corpus.Identifier;
 import pt.ua.tm.gimli.corpus.Sentence;
 import pt.ua.tm.gimli.tree.Tree;
 import pt.ua.tm.gimli.tree.TreeNode;
-import pt.ua.tm.trigner.configuration.Configuration;
+import pt.ua.tm.trigner.configuration.Global;
 import pt.ua.tm.trigner.documents.Documents;
-import pt.ua.tm.trigner.model.Documents2InstancesConverter;
-import pt.ua.tm.trigner.model.Model;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -30,19 +28,19 @@ import java.util.List;
  */
 public class Annotator {
 
-    public static void annotate(Documents documents, final Model model) {
-        // Remove trigger annotations from documents
-        removeTriggerAnnotations(documents);
-
-        CRF crf = model.getCRF();
-
-        for (Corpus corpus : documents) {
-            for (Sentence sentence : corpus) {
-                annotate(sentence, crf);
-            }
-        }
-
-    }
+//    public static void annotate(Documents documents, final Model model) {
+//        // Remove trigger annotations from documents
+//        removeTriggerAnnotations(documents);
+//
+//        CRF crf = model.getCRF();
+//
+//        for (Corpus corpus : documents) {
+//            for (Sentence sentence : corpus) {
+//                annotate(sentence, crf);
+//            }
+//        }
+//
+//    }
 
     public static void removeTriggerAnnotations(Documents documents) {
         for (Corpus corpus : documents) {
@@ -56,7 +54,7 @@ public class Annotator {
                     AnnotationID annotation = node.getData();
                     List<Identifier> toRemove = new ArrayList<>();
                     for (Identifier identifier : annotation.getIDs()) {
-                        if (Configuration.getTriggersList().contains(identifier.getGroup())) {
+                        if (Global.projectConfiguration.getEvents().contains(identifier.getGroup())) {
                             toRemove.add(identifier);
                         }
                     }
@@ -72,13 +70,13 @@ public class Annotator {
         }
     }
 
-    public static void annotate(Sentence sentence, final CRF crf) {
+    public static void annotate(Sentence sentence, final CRF crf, final String sentenceInModelFormat) {
         // Get pipe
         crf.getInputPipe().getDataAlphabet().stopGrowth();
         Pipe pipe = crf.getInputPipe();
 
 //        String sentenceInModelFormat = getSentenceInModelFormat(sentence);
-        String sentenceInModelFormat = Documents2InstancesConverter.getSentenceData(sentence);
+//        String sentenceInModelFormat = Documents2InstancesConverter.getSentenceData(sentence);
 
         // Get instance
         Instance instance = new Instance(sentenceInModelFormat, null, 0, null);

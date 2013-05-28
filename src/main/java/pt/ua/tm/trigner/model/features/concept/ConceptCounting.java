@@ -1,4 +1,4 @@
-package pt.ua.tm.trigner.model.features;
+package pt.ua.tm.trigner.model.features.concept;
 
 import pt.ua.tm.gimli.corpus.AnnotationID;
 import pt.ua.tm.gimli.corpus.Identifier;

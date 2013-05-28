@@ -1,25 +1,24 @@
-package pt.ua.tm.trigner.output;
+package pt.ua.tm.trigner.annotate;
 
 import com.aliasi.util.Pair;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import pt.ua.tm.gimli.corpus.Corpus;
-import pt.ua.tm.gimli.model.CRFBase;
-import pt.ua.tm.neji.context.Context;
-import pt.ua.tm.neji.context.ContextProcessors;
 import pt.ua.tm.neji.core.corpus.InputCorpus;
 import pt.ua.tm.neji.core.corpus.OutputCorpus;
 import pt.ua.tm.neji.core.pipeline.DefaultPipeline;
 import pt.ua.tm.neji.core.pipeline.Pipeline;
-import pt.ua.tm.neji.core.processor.BaseProcessor;
+import pt.ua.tm.neji.dictionary.Dictionary;
+import pt.ua.tm.neji.dictionary.DictionaryHybrid;
 import pt.ua.tm.neji.exception.NejiException;
-import pt.ua.tm.neji.ml.MLModel;
 import pt.ua.tm.neji.nlp.NLP;
 import pt.ua.tm.neji.reader.RawReader;
 import pt.ua.tm.neji.sentence.SentenceTagger;
-import pt.ua.tm.neji.writer.A1Writer;
-import pt.ua.tm.trigner.evaluation.Trigger;
+import pt.ua.tm.trigner.model.Model;
+import pt.ua.tm.trigner.postprocessors.ConceptFilter;
+import pt.ua.tm.trigner.postprocessors.ParenthesesFilter;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -49,32 +48,39 @@ public class DocumentProcessor extends BaseProcessor {
             ContextProcessors processors = getContext().take();
             Corpus corpus = getInputCorpus().getCorpus();
             List<Pair> sentencesPositions = new ArrayList<>();
-//            List<Trigger> a1Annotations = new ArrayList<>();
+            List<String> sentencesInModelFormat = new ArrayList<>();
 
             Pipeline p = new DefaultPipeline();
-
-            // Load A1 annotations
-//            p.add(new A1Loader(a1Corpus, a1Annotations));
 
             p.add(new RawReader());
             p.add(new SentenceTagger(processors.getSentenceSplitter(), sentencesPositions));
             p.add(new NLP(corpus, processors.getParser(), sentencesPositions));
 
-            // Add annotations features to each sentence
-//            p.add(new AnnotationsFeaturesLoader(corpus, a1Annotations));
-
+            // Load concepts
             p.add(new A1Loader(corpus, a1Corpus));
+
+            // Generate sentence in model format
+            if (!getContext().getModels().isEmpty()) {
+                p.add(new GenerateSentenceInModelFormat(corpus, sentencesInModelFormat, getContext().getModels()));
+            }
 
             // Annotate
             for (int i = 0; i < getContext().getModels().size(); i++) {
                 // Take model
-                CRFBase crf = processors.getCRF(i);
+                Model crf = processors.getCRF(i);
                 // Add ML recognizer to pipeline
-                p.add(new ModelAnnotator(corpus, crf.getCRF()));
+                p.add(new ModelAnnotator(corpus, crf.getCRF(), sentencesInModelFormat));
             }
 
-            // Remove protein annotations
-            p.add(new CleanTreeAnnotations(corpus, new String[]{"Protein"}));
+            // Dictionaries
+            for (Dictionary d : getContext().getDictionaries()) {
+                DictionaryHybrid dtl = new DictionaryHybrid(d, corpus);
+                p.add(dtl);
+            }
+
+            // Post-processing
+            p.add(new ConceptFilter(corpus));
+            p.add(new ParenthesesFilter(corpus));
 
             // Change to proper writer
             p.add(new A1Writer(corpus));
@@ -84,7 +90,9 @@ public class DocumentProcessor extends BaseProcessor {
 
             // Return processors
             getContext().put(processors);
-        } catch (NejiException | InterruptedException e) {
+
+            logger.info("Finished processing {}", getInputCorpus().getFile().getName());
+        } catch (IOException | NejiException | InterruptedException e) {
             logger.error("ERROR:", e);
             return;
         }

@@ -1,4 +1,4 @@
-package pt.ua.tm.trigner.model.features;
+package pt.ua.tm.trigner.model.features.concept;
 
 import pt.ua.tm.gimli.corpus.AnnotationID;
 import pt.ua.tm.gimli.corpus.Identifier;
@@ -21,6 +21,11 @@ import java.util.Set;
  * To change this template use File | Settings | File Templates.
  */
 public class ConceptTags implements FeatureExtractor {
+
+    private String prefix;
+    public ConceptTags(final String prefix){
+        this.prefix = prefix;
+    }
 
     @Override
     public void extract(Sentence sentence) {
@@ -49,7 +54,8 @@ public class ConceptTags implements FeatureExtractor {
         List<String> groups = Arrays.asList(semGroups.toArray(new String[]{}));
         for (String group : groups) {
             if (Configuration.getConceptsList().contains(group)) {
-                token.putFeature("CONCEPT=" + group.toUpperCase(), "");
+//                token.putFeature("CONCEPT=" + group.toUpperCase(), "");
+                token.putFeature(prefix, group.toUpperCase());
             }
         }
     }

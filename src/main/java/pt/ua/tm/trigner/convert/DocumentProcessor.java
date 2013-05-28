@@ -1,4 +1,4 @@
-package pt.ua.tm.trigner.input;
+package pt.ua.tm.trigner.convert;
 
 import com.aliasi.util.Pair;
 import org.slf4j.Logger;
@@ -14,8 +14,10 @@ import pt.ua.tm.neji.exception.NejiException;
 import pt.ua.tm.neji.nlp.NLP;
 import pt.ua.tm.neji.reader.RawReader;
 import pt.ua.tm.neji.sentence.SentenceTagger;
-import pt.ua.tm.trigner.output.A1Loader;
+import pt.ua.tm.trigner.annotate.A1Loader;
 
+import java.io.IOException;
+import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -61,11 +63,14 @@ public class DocumentProcessor extends BaseProcessor {
 //            p.add(new LabelWriter(corpus));
 
             // Run processing pipeline
-            p.run(getInputCorpus().getInStream());
+            InputStream inputStream = getInputCorpus().getInStream();
+            p.run(inputStream);
+
+            logger.info("File processed: {}", getInputCorpus().getFile().getName());
 
             // Return processors
             getContext().put(processors);
-        } catch (NejiException | InterruptedException e) {
+        } catch (NejiException | InterruptedException | IOException e) {
             logger.error("ERROR:", e);
             return;
         }

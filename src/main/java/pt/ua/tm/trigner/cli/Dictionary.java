@@ -1,4 +1,4 @@
-package pt.ua.tm.trigner.dictionary;
+package pt.ua.tm.trigner.cli;
 
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
@@ -16,14 +16,14 @@ import java.util.regex.Pattern;
  * Time: 15:58
  * To change this template use File | Settings | File Templates.
  */
-public class Collector {
+public class Dictionary {
 
-    private static Logger logger = LoggerFactory.getLogger(Collector.class);
+    private static Logger logger = LoggerFactory.getLogger(Dictionary.class);
 
     public static void main(final String... args) {
 
-        String folderPath = "resources/corpus/bionlp2013/cg/train/";
-        String dictionariesPath = "resources/dictionaries/cg/";
+        String folderPath = "/Users/david/Downloads/merged_a2/";
+        String dictionariesPath = "resources/dictionaries/ge/";
 
         Map<String, HashSet<String>> map = new HashMap<>();
 
@@ -55,6 +55,10 @@ public class Collector {
 
 
                     String trigger = parts[2].toLowerCase();
+
+                    if (trigger.length() < 3){
+                        continue;
+                    }
 
                     HashSet<String> triggers;
                     if (map.containsKey(group)) {

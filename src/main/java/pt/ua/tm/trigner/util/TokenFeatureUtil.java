@@ -1,7 +1,8 @@
-package pt.ua.tm.trigner.model.features;
+package pt.ua.tm.trigner.util;
 
 import pt.ua.tm.gimli.corpus.Chunk;
 import pt.ua.tm.gimli.corpus.Token;
+import pt.ua.tm.trigner.model.features.FeatureType;
 
 /**
  * Created with IntelliJ IDEA.

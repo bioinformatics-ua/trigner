@@ -1,4 +1,4 @@
-package pt.ua.tm.trigner.dictionary;
+package pt.ua.tm.trigner.tmp.dictionary;
 
 import com.aliasi.util.Pair;
 import org.slf4j.Logger;
@@ -19,6 +19,7 @@ import pt.ua.tm.neji.reader.RawReader;
 import pt.ua.tm.neji.sentence.SentenceTagger;
 import pt.ua.tm.neji.writer.A1Writer;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -65,7 +66,7 @@ public class DocumentProcessor extends BaseProcessor {
 
             // Return processors
             getContext().put(processors);
-        } catch (NejiException | InterruptedException e) {
+        } catch (IOException | NejiException | InterruptedException e) {
             logger.error("ERROR:", e);
             return;
         }

@@ -1,4 +1,4 @@
-package pt.ua.tm.trigner.input;
+package pt.ua.tm.trigner.convert;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

@@ -1,4 +1,4 @@
-package pt.ua.tm.trigner.output;
+package pt.ua.tm.trigner.annotate;
 
 import monq.jfa.*;
 import org.slf4j.Logger;

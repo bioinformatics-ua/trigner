@@ -1,4 +1,4 @@
-package pt.ua.tm.trigner.model.features.shortestpath;
+package pt.ua.tm.trigner.util;
 
 import martin.common.Tuple;
 import pt.ua.tm.gimli.corpus.AnnotationID;
@@ -6,7 +6,7 @@ import pt.ua.tm.gimli.corpus.Identifier;
 import pt.ua.tm.gimli.corpus.Sentence;
 import pt.ua.tm.gimli.corpus.Token;
 import pt.ua.tm.gimli.tree.Tree;
-import pt.ua.tm.trigner.configuration.Configuration;
+import pt.ua.tm.trigner.configuration.Global;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -27,7 +27,7 @@ public class ShortestPathUtil {
         List<AnnotationID> concepts = new ArrayList<>();
         for (AnnotationID annotation : annotations) {
             for (Identifier identifier : annotation.getIDs()) {
-                if (Configuration.getConceptsList().contains(identifier.getGroup())) {
+                if (Global.projectConfiguration.getConcepts().contains(identifier.getGroup())) {
                     concepts.add(annotation);
                     break;
                 }

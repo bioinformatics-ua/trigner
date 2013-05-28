@@ -1,4 +1,4 @@
-package pt.ua.tm.trigner.output;
+package pt.ua.tm.trigner.annotate;
 
 import org.apache.commons.lang.NotImplementedException;
 import org.apache.commons.lang.time.StopWatch;
@@ -6,15 +6,11 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import pt.ua.tm.gimli.corpus.Corpus;
 import pt.ua.tm.gimli.util.FileUtil;
-import pt.ua.tm.neji.context.Context;
-import pt.ua.tm.neji.core.batch.Batch;
 import pt.ua.tm.neji.core.corpus.InputCorpus;
 import pt.ua.tm.neji.core.corpus.OutputCorpus;
-import pt.ua.tm.neji.core.processor.Processor;
 import pt.ua.tm.neji.exception.NejiException;
 
 import java.io.File;
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.concurrent.ExecutorService;
@@ -32,19 +28,20 @@ public class FolderBatch implements Batch {
 
     private static Logger logger = LoggerFactory.getLogger(FolderBatch.class);
     private Collection<Corpus> processedCorpora;
-    private String inputFolderPath, outputFolderPath;
+    private String inputFolderPath, outputFolderPath, conceptFolderPath;
     private int numThreads;
 
-    public FolderBatch(final String inputFolderPath, final String outputFolderPath, final int numThreads) {
+    public FolderBatch(final String inputFolderPath, final String outputFolderPath, final String conceptFolderPath, final int numThreads) {
         this.inputFolderPath = inputFolderPath;
         this.outputFolderPath = outputFolderPath;
+        this.conceptFolderPath = conceptFolderPath;
         this.numThreads = numThreads;
         this.processedCorpora = new ArrayList<>();
     }
 
     @Override
     public void run(Class<Processor> processorClass, Context context, Object... objects) throws NejiException {
-        throw new NotImplementedException("Not implemented. Use void run(Context context) instead.");
+        throw new NotImplementedException("Not implemented. Use \"void run(Context context)\" instead.");
     }
 
     public void run(final Context context) throws NejiException {
@@ -65,7 +62,8 @@ public class FolderBatch implements Batch {
         File[] files = inputFolder.listFiles(new FileUtil.Filter(new String[]{"txt"}));
 
         for (File file : files) {
-            File a1File = new File(file.getAbsolutePath().replaceAll(".txt", ".a1"));
+            File a1File = new File(conceptFolderPath, file.getName().replaceAll(".txt", ".a1"));
+//            File a1File = new File(file.getAbsolutePath().replaceAll(".txt", ".a1"));
             File outputFile = OutputCorpus.newOutputFile(outputFolderPath, file.getName().replaceAll(".txt", ""), OutputCorpus.OutputFormat.A1, false);
             Processor processor = getDocumentProcessor(file, a1File, outputFile, context);
 
@@ -93,22 +91,17 @@ public class FolderBatch implements Batch {
         return processedCorpora;
     }
 
-
     private Processor getDocumentProcessor(final File inputTextFile, final File inputA1File, final File outputFile, Context context) {
         Corpus corpus = new Corpus();
         Processor processor;
 
-        try {
-            InputCorpus textCorpus = new InputCorpus(inputTextFile, InputCorpus.InputFormat.RAW, false, corpus);
-            InputCorpus a1Corpus = new InputCorpus(inputA1File, InputCorpus.InputFormat.RAW, false, corpus);
-            OutputCorpus outputCorpus = new OutputCorpus(outputFile, OutputCorpus.OutputFormat.A1, false, corpus);
+        InputCorpus textCorpus = new InputCorpus(inputTextFile, InputCorpus.InputFormat.RAW, false, corpus);
+        InputCorpus a1Corpus = new InputCorpus(inputA1File, InputCorpus.InputFormat.RAW, false, corpus);
+        OutputCorpus outputCorpus = new OutputCorpus(outputFile, OutputCorpus.OutputFormat.A1, false, corpus);
 
-            processedCorpora.add(corpus);
+        processedCorpora.add(corpus);
 
-            processor = new DocumentProcessor(context, textCorpus, a1Corpus, outputCorpus);
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
+        processor = new DocumentProcessor(context, textCorpus, a1Corpus, outputCorpus);
 
         return processor;
     }

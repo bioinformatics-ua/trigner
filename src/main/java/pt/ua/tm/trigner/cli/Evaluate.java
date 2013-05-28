@@ -1,8 +1,9 @@
-package pt.ua.tm.trigner.evaluation;
+package pt.ua.tm.trigner.cli;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import pt.ua.tm.gimli.util.FileUtil;
+import pt.ua.tm.trigner.evaluation.CompleteEvaluator;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -15,17 +16,19 @@ import java.io.IOException;
  * Time: 11:59
  * To change this template use File | Settings | File Templates.
  */
-public class EvaluateMain {
+public class Evaluate {
 
-    private static Logger logger = LoggerFactory.getLogger(EvaluateMain.class);
+    private static Logger logger = LoggerFactory.getLogger(Evaluate.class);
 
     public static void main(String... args) {
 //        String goldFolderPath = "resources/corpus/bionlp2011/dev/";
 //        String silverFolderPath = "resources/corpus/bionlp2011/dev/silver/dictionaries/";
 //        String silverFolderPath = "resources/corpus/bionlp2011/dev/silver/ml/";
 
-        String goldFolderPath = "resources/corpus/bionlp2013/cg/dev/";
-        String silverFolderPath = "resources/corpus/bionlp2013/cg/dev/silver/ml/";
+        String goldFolderPath = "resources/corpus/bionlp2009/dev/";
+        String silverFolderPath = "resources/corpus/bionlp2009/dev_silver_ml_train_final/";
+//        String silverFolderPath = "/Users/david/Downloads/dev_without_gold/";
+//        String silverFolderPath = "/Users/david/Downloads/tees-ge09-devel/";
 
         boolean justTriggerEvaluation = false;
 

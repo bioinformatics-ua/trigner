@@ -1,9 +1,6 @@
-package pt.ua.tm.trigner.model.features;
-
-import org.apache.commons.lang.StringUtils;
+package pt.ua.tm.trigner.util;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 
 /**
@@ -43,32 +40,5 @@ public class NGramsUtil {
 
 
         return ngrams;
-    }
-
-    public static int[] fromString(final String text) {
-        String[] parts = text.split(",");
-
-        int[] ngrams = new int[parts.length];
-        for (int i = 0; i < parts.length; i++) {
-            ngrams[i] = Integer.parseInt(parts[i]);
-        }
-
-        return ngrams;
-    }
-
-    public static String toString(final int[] ngrams) {
-
-        StringBuilder sb = new StringBuilder();
-        for (int ngram:ngrams){
-            sb.append(ngram);
-            sb.append(",");
-        }
-        if (sb.length() > 0) {
-            sb.setLength(sb.length()-1);
-        }
-
-//        String str = StringUtils.join(Arrays.asList(ngrams), ',');
-
-        return sb.toString();
     }
 }

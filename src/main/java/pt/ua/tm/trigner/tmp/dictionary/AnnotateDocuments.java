@@ -1,4 +1,4 @@
-package pt.ua.tm.trigner.dictionary;
+package pt.ua.tm.trigner.tmp.dictionary;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

@@ -1,4 +1,4 @@
-package pt.ua.tm.trigner.input;
+package pt.ua.tm.trigner.convert;
 
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang.NotImplementedException;
@@ -14,7 +14,6 @@ import pt.ua.tm.neji.core.processor.Processor;
 import pt.ua.tm.neji.exception.NejiException;
 
 import java.io.File;
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.concurrent.ExecutorService;
@@ -96,18 +95,14 @@ public class FolderBatch implements Batch {
         Corpus corpus = new Corpus();
         Processor processor = null;
 
-        try {
-            InputCorpus textCorpus = new InputCorpus(inputTextFile, InputCorpus.InputFormat.RAW, false, corpus);
-            InputCorpus a1Corpus = new InputCorpus(a1File, InputCorpus.InputFormat.RAW, false, new Corpus());
-            InputCorpus a2Corpus = new InputCorpus(a2File, InputCorpus.InputFormat.RAW, false, new Corpus());
+        InputCorpus textCorpus = new InputCorpus(inputTextFile, InputCorpus.InputFormat.RAW, false, corpus);
+        InputCorpus a1Corpus = new InputCorpus(a1File, InputCorpus.InputFormat.RAW, false, new Corpus());
+        InputCorpus a2Corpus = new InputCorpus(a2File, InputCorpus.InputFormat.RAW, false, new Corpus());
 
-            corpus.setIdentifier(FilenameUtils.removeExtension(inputTextFile.getName()));
-            processedCorpora.add(corpus);
+        corpus.setIdentifier(FilenameUtils.removeExtension(inputTextFile.getName()));
+        processedCorpora.add(corpus);
 
-            processor = new DocumentProcessor(context, textCorpus, a1Corpus, a2Corpus);
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
+        processor = new DocumentProcessor(context, textCorpus, a1Corpus, a2Corpus);
 
         return processor;
     }
