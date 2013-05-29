@@ -40,7 +40,7 @@ Bug tracker
 -----------
 Have a bug? Please create an issue here on GitHub!
 
-[https://github.com/davidcampos/trigner/issues](https://github.com/davidcampos/trigner/issues)
+[https://github.com/davidcampos/trigner/issues](https://github.com/bioinformatics-ua/trigner/issues)
 
 Team
 ----
