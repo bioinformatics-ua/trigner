@@ -1,5 +1,6 @@
 Trigner
 =====
+[![Build Status](https://travis-ci.org/bioinformatics-ua/trigner.png?branch=master)](https://travis-ci.org/bioinformatics-ua/trigner)
 
 **Trigner** is an open source machine learning-based solution for biomedical event trigger recognition. It takes advantage of Conditional Random Fields (CRFs) with a high-end feature set, including linguistic-based, orthographic, morphological, local context and dependency parsing features. Additionally, a completely configurable algorithm is used to automatically optimize the feature set and training parameters for each event type, selecting the features that have a positive contribution and optimizing the CRF model order, n-grams sizes, vertex information and maximum hops for dependency parsing features. The final output consists of various CRF models, each one optimized to the linguistic characteristics of each event type.
 
